@@ -1,0 +1,253 @@
+---
+title: "Dynamic report"
+output: pdf_document
+params:
+  yy: NA
+  temp: NA
+  main.title: NA
+  fit: NA
+  mod: NA
+  modPoints: NA
+  predPoints: NA
+  alpha: NA
+  dig: NA
+  upper_shelf: NA
+  lower_shelf: NA
+  c_htf: NA
+  t0_htf: NA
+  c_ahtf: NA
+  t0_ahtf: NA
+  d_ahtf: NA
+  k_aburf: NA
+  t0_aburf: NA
+  m_aburf: NA
+  c_kohf: NA
+  DBTT_kohf: NA
+  c_akohf: NA
+  t0_akohf: NA
+  p_akohf: NA
+---
+
+<!-- This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. -->
+
+<!-- R code will have to go in "coding chunks" like the one below.  -->
+
+<!-- I have commented out these remarks, but you can easily add text to the report by just typing.  -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(minpack.lm)
+library(propagate)
+library(onls)
+#library(nlsMicrobio)  # nlstools moving here?
+library(nlstools)
+library(MASS)
+library(beepr)
+
+# source("functions_4_more_fun_v3.1.r") ### Might have to change this depending on where the file is.
+```
+
+
+
+```{r,echo=F}
+############################
+# specify title for analysis
+main.title <<- params$main.title#"Dataset 1"
+
+#################################################
+# Variable being fitted (KV = 1, LE = 2, SFA = 3)
+fit <- params$fit
+
+if (fit == 1) {
+  main.title = paste(main.title,"KV",sep=" ")
+}
+if (fit == 2) {
+  main.title = paste(main.title,"LE",sep=" ")
+}
+if (fit == 3) {
+  main.title = paste(main.title,"SFA",sep=" ")
+}
+
+##########################
+# specify models to be fit
+# ht : hyperbolic tangent
+# htf : hyperbolic tangent with fixed shelves
+# aht : asymmetric hyperbolic tangent
+# ahtf : asymmetric hyperbolic tangent with fixed shelves
+# abur : Burr distribution (asymmetric)
+# aburf : Burr distribution (asymmetric - with fixed shelves)
+# koh : Kohout symmetric
+# kohf : Kohout symmetric with fixed shelves
+# akohf : Kohout asymmetric with fixed shelves
+
+ mod = params$mod#c("ht","htf","aht","ahtf","abur","aburf","koh","kohf","akohf")
+
+# symmetric models only
+#mod = c("ht","htf","koh","kohf")
+
+# asymmetric models only
+# mod = c("aht","ahtf","abur","aburf","akohf")
+
+# Selective models only
+# mod = c("aburf","kohf","akohf")
+
+
+####################################
+# specify path for working directory
+# and generate file names for output
+#path = paste(getwd(),"/",sep="")
+# path = "C:\\Charpy\\Charpy software\\R\\Transition curve fitting, prediction and confidence bounds\\R-codes\\Versions 061220\\"
+# outfile = paste(path, main.title, "_results.out", sep="")
+# pdf(paste(path, main.title, "_plots", ".pdf", sep=""))
+
+###################
+# compile functions
+# source(paste(path, "functions_4_more_fun_v3.1.r", sep=""))
+# source("C:\\Charpy\\Charpy software\\R\\Transition curve fitting, prediction and confidence bounds\\R-codes\\Versions 061220\\functions_4_more_fun_v3.1.r")
+
+##############################
+# Selection label for y variable
+#
+if (fit == 1) {
+	y.label <<- "Absorbed Energy KV, J"
+}
+if (fit == 2) {
+	y.label <<- "Lateral Expansion LE, mm"
+}
+if (fit == 3) {
+	y.label <<- "Shear Fracture Appearance SFA, %"
+}
+
+##### do not fit ht and aht models for fit==3, SFA
+
+#################
+# example #1 data
+temp = params$temp#c(-80,-50,-35,-15,0,10,21,40,76,100,148,198)
+yy = params$yy#c(0,0,6,16,28,39,53,79,100,100,100,100)
+nn = length(temp)
+
+#################################
+# prediction/confidence intervals
+# "c" = confidence bounds
+# "p" = prediction bounds
+# "pc" = both
+# "no" = none
+bnds = "no"
+alpha = params$alpha#0.05
+
+#######################
+# specify fixed shelves
+upper_shelf <<- params$upper_shelf
+lower_shelf <<- params$lower_shelf
+# if (fit == 3) {
+#   upper_shelf <<- 100
+#   lower_shelf <<- 0
+# }
+aa <<- (upper_shelf + lower_shelf)/2
+bb <<- (upper_shelf - lower_shelf)/2
+
+########################################
+
+start.htf  <<- list(c=params$c_htf, t0=params$t0_htf)
+
+start.ahtf <<- list(c=params$c_ahtf, t0=params$t0_ahtf, d=params$d_ahtf)
+
+start.aburf <<- list(k=params$k_aburf, t0=params$t0_aburf, m=params$m_aburf) 
+
+start.kohf  <<- list(c=params$c_kohf, DBTT=params$DBTT_kohf)
+
+start.akohf <<- list(c=params$c_akohf, t0=params$t0_akohf, p=params$p_akohf)
+
+############################################
+# compute temperature for given response (y)
+# will not compute uncertainty unless se(t0) 
+# or se(DBTT) is "reasonable"
+# yval = c(28,41) # Absorbed energy values of interest to nuclear community
+# yval = 0.89   # Lateral expansion value of interest to nuclear community
+if (fit == 3) {
+  yval = 50
+}
+
+###########################
+# specify options for plots
+par(cex=1.25, lwd=1.25, cex.main=1)
+dig<<-params$dig
+colorz<<-c("red","blue","darkgreen","magenta","orange",
+         "purple","brown","cyan","chartreuse")
+
+############################################
+# create new temperature values for plotting
+tvals <<- seq(min(temp), max(temp), length.out=params$modPoints)
+newt <<- data.frame(temp=tvals)
+# names(newt) = c("temp")
+##########################
+# sort data by temperature
+dft = data.frame(yy,temp)
+dft = dft[order(dft$temp),]
+temp <<- dft$temp
+yy <<- dft$yy
+
+
+###########################
+# specify model information
+ID <<- c("ht","htf","aht","ahtf","abur","aburf","koh","kohf","akohf")
+titles <<- c("Symmetric TANH",   "Symmetric TANH, Fixed Shelves",
+          "Asymmetric TANH",  "Asymmetric TANH, Fixed Shelves",
+          "Burr Distribution",  "Burr Distribution, Fixed Shelves",
+          "Symmetric Kohout", "Symmetric Kohout, Fixed Shelves",
+                         "Asymmetric Kohout, Fixed Shelves")
+nmod <<- length(ID)
+num <<-c(1:nmod)
+dfmod <<- data.frame(num,ID,titles)
+
+##############################
+# fit and plot selected models
+mstats = fits(mod)
+plot.mods(mod)
+
+
+for(i in mod){
+  resname = paste("r",i,sep="")
+  res = get(resname)
+  splot(i, res)
+#  plot4(i, res)
+  nlsres(i, res)
+  rplot(i, res)
+  if (i=="akohf") bnds = "n"
+  if (bnds == "c"){
+    pcplot(i, res, "c")
+  } else if (bnds == "p") {
+    pcplot(i, res, "p")
+  } else if (bnds == "pc") {
+    pcplot(i, res, "c")
+    pcplot(i, res, "p")
+  }
+}
+
+#####################################
+# close output file containing graphs
+# dev.off()
+
+#####################################
+# Write analysis results in text file
+dash = "================================================================= "
+# sink(outfile)
+cat(main.title, "\n")
+cat("Model Selection Statistics", "\n")
+mstats
+
+for(i in mod){
+  resname = paste("r",i,sep="")
+  res = get(resname)
+  cat(dash, "\n")
+  head = as.character(dfmod[dfmod$ID==i,]$titles)
+  cat(head, "\n")
+  print(summary(res))
+  if (i != "akohf") print(tfun(i,res,yval))
+}
+# sink()
+
+# beep(3)
+
+
+```

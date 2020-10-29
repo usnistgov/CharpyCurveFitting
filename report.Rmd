@@ -13,19 +13,14 @@ params:
   dig: NA
   upper_shelf: NA
   lower_shelf: NA
-  c_htf: NA
-  t0_htf: NA
-  c_ahtf: NA
-  t0_ahtf: NA
-  d_ahtf: NA
-  k_aburf: NA
-  t0_aburf: NA
-  m_aburf: NA
-  c_kohf: NA
-  DBTT_kohf: NA
-  c_akohf: NA
-  t0_akohf: NA
-  p_akohf: NA
+  c_prov: NA
+  d_prov: NA
+  t0_prov: NA
+  k_prov: NA
+  m_prov: NA
+  ck_prov: NA
+  p_prov: NA
+  dbtt: NA
 ---
 
 <!-- This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. -->
@@ -36,15 +31,6 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(minpack.lm)
-library(propagate)
-library(onls)
-#library(nlsMicrobio)  # nlstools moving here?
-library(nlstools)
-library(MASS)
-library(beepr)
-
-# source("functions_4_more_fun_v3.1.r") ### Might have to change this depending on where the file is.
 ```
 
 
@@ -52,7 +38,7 @@ library(beepr)
 ```{r,echo=F}
 ############################
 # specify title for analysis
-main.title <<- params$main.title#"Dataset 1"
+main.title <<- params$main.title
 
 #################################################
 # Variable being fitted (KV = 1, LE = 2, SFA = 3)
@@ -60,103 +46,133 @@ fit <- params$fit
 
 if (fit == 1) {
   main.title = paste(main.title,"KV",sep=" ")
+  y.label = "Absorbed Energy KV, J"
 }
 if (fit == 2) {
   main.title = paste(main.title,"LE",sep=" ")
+  y.label = "Lateral Expansion LE, mm"
 }
 if (fit == 3) {
   main.title = paste(main.title,"SFA",sep=" ")
+  y.label = "Shear Fracture Appearance SFA, %"
 }
 
 ##########################
 # specify models to be fit
 # ht : hyperbolic tangent
 # htf : hyperbolic tangent with fixed shelves
+# htuf:  hyperbolic tangent with fixed upper shelf
 # aht : asymmetric hyperbolic tangent
 # ahtf : asymmetric hyperbolic tangent with fixed shelves
+# ahtuf : asymemtric hyperbolic tangent with fixed upper shelf
 # abur : Burr distribution (asymmetric)
 # aburf : Burr distribution (asymmetric - with fixed shelves)
+# aburuf : Burr distribution (asymmetric with fixed upper shelf)
 # koh : Kohout symmetric
 # kohf : Kohout symmetric with fixed shelves
+# kohuf : Kohout symmetric with fixed upper shelf
 # akohf : Kohout asymmetric with fixed shelves
+# akohuf : Kohout asymmetric with fixed upper shelf
 
- mod = params$mod#c("ht","htf","aht","ahtf","abur","aburf","koh","kohf","akohf")
+mod = params$mod
 
-# symmetric models only
-#mod = c("ht","htf","koh","kohf")
-
-# asymmetric models only
-# mod = c("aht","ahtf","abur","aburf","akohf")
-
-# Selective models only
-# mod = c("aburf","kohf","akohf")
-
-
-####################################
-# specify path for working directory
-# and generate file names for output
-#path = paste(getwd(),"/",sep="")
-# path = "C:\\Charpy\\Charpy software\\R\\Transition curve fitting, prediction and confidence bounds\\R-codes\\Versions 061220\\"
-# outfile = paste(path, main.title, "_results.out", sep="")
-# pdf(paste(path, main.title, "_plots", ".pdf", sep=""))
-
-###################
-# compile functions
-# source(paste(path, "functions_4_more_fun_v3.1.r", sep=""))
-# source("C:\\Charpy\\Charpy software\\R\\Transition curve fitting, prediction and confidence bounds\\R-codes\\Versions 061220\\functions_4_more_fun_v3.1.r")
-
-##############################
-# Selection label for y variable
-#
-if (fit == 1) {
-	y.label <<- "Absorbed Energy KV, J"
-}
-if (fit == 2) {
-	y.label <<- "Lateral Expansion LE, mm"
-}
-if (fit == 3) {
-	y.label <<- "Shear Fracture Appearance SFA, %"
-}
-
-##### do not fit ht and aht models for fit==3, SFA
-
-#################
-# example #1 data
-temp = params$temp#c(-80,-50,-35,-15,0,10,21,40,76,100,148,198)
-yy = params$yy#c(0,0,6,16,28,39,53,79,100,100,100,100)
+########################
+# Input data
+temp = params$temp
+yy = params$yy
 nn = length(temp)
 
-#################################
-# prediction/confidence intervals
+##############################
+# prediction/confidence bounds
+# prediction bounds are not available
 # "c" = confidence bounds
-# "p" = prediction bounds
-# "pc" = both
+# "p" = prediction bounds - not available
+# "pc" = both - not available
 # "no" = none
-bnds = "no"
-alpha = params$alpha#0.05
+bnds = "c" ### TODO: add options for this in the app
+
+########################
+# input confidence level
+alpha = params$alpha
+
+###########################################################
+# input number of temperatures for fitted curves and bounds
+n.new = 20 ### TODO
+
+#####################################
+# input number of simulated data sets
+nsim = 5000 ### TODO
 
 #######################
-# specify fixed shelves
-upper_shelf <<- params$upper_shelf
-lower_shelf <<- params$lower_shelf
-# if (fit == 3) {
-#   upper_shelf <<- 100
-#   lower_shelf <<- 0
+# specify values for fixed shelves
+upper_shelf = params$upper_shelf
+lower_shelf = params$lower_shelf
+# if (fit == 3) { ### TODO: Have this show up on the ui, or not be editable, when fit ==3
+#   upper_shelf = 100
+#   lower_shelf = 0
 # }
-aa <<- (upper_shelf + lower_shelf)/2
-bb <<- (upper_shelf - lower_shelf)/2
+
+#########################################################
+# specify uncertainty of shelves for parametric bootstrap
+# (simulations are needed to obtain the uncertainties of 
+# the parameters when one or more shelves are fixed)
+#
+# uls = u(lower_shelf) will be converted to bounds of a 
+# uniform distribution where the lower_shelf is bounded by [a, b]
+# and a >= 0 (usually, a = 0)
+# uls = (b - a)/sqrt(12)
+# b = a + uls * sqrt(12)
+#
+# if fit ==3,
+# uus = u(upper_shelf) will be converted to bounds of a 
+# uniform distribution where the upper_shelf is bounded by [c, d] 
+# and d <= 100 (usually, d = 100)
+# uus = (d - c)/sqrt(12)
+# c = d - uus*sqrt(12)
+#
+# if fit != 3, uus is normal(0,uus)
+
+uls = 0.05
+uus = upper_shelf*0.05
 
 ########################################
+# specify starting values for each model
 
-start.htf  <<- list(c=params$c_htf, t0=params$t0_htf)
+# hyperbolic tangent models
+c_prov = params$c_prov
+d_prov = params$d_prov
+t0_prov = params$t0_prov
 
-start.ahtf <<- list(c=params$c_ahtf, t0=params$t0_ahtf, d=params$d_ahtf)
+# burr models
+k_prov = params$k_prov
+m_prov = params$m_prov
 
-start.aburf <<- list(k=params$k_aburf, t0=params$t0_aburf, m=params$m_aburf) 
+# kohout models
+ck_prov = params$ck_prov
+p_prov = params$p_prov
+dbtt = params$dbtt
 
-start.kohf  <<- list(c=params$c_kohf, DBTT=params$DBTT_kohf)
+start.ht    = c(c=c_prov, t0=t0_prov, lse=lower_shelf, use=upper_shelf)
+start.htf   = c(c=c_prov, t0=t0_prov)
+start.htuf  = c(c=c_prov, t0=t0_prov, lse=lower_shelf)
 
-start.akohf <<- list(c=params$c_akohf, t0=params$t0_akohf, p=params$p_akohf)
+start.aht   = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf, use=upper_shelf)
+start.ahtf  = c(c=c_prov, t0=t0_prov, d=d_prov)
+start.ahtuf = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf)
+
+start.abur   = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf, use=upper_shelf)
+start.aburf  = c(k=k_prov, t0=t0_prov, m=m_prov) 
+start.aburuf = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf) 
+
+start.koh   = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf, use=upper_shelf)
+start.kohf  = c(c=ck_prov, DBTT=t0_prov)
+start.kohuf = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf)
+
+start.akoh   = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf, use=upper_shelf )
+start.akohf  = c(c=ck_prov, t0=dbtt, p=p_prov)
+start.akohuf = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf)
+
+
 
 ############################################
 # compute temperature for given response (y)

@@ -1,14 +1,20 @@
+
+## Don't think we need all of these libraries, but not sure which are no longer used. 
+## From Jolene's new code
 library(minpack.lm)
+library(MASS)
+library(ggplot2)
+library(pracma)
+
+## from old code
 library(propagate)
 library(onls)
-#library(nlsMicrobio)  # nlstools moving here?
 library(nlstools)
-library(MASS)
-library(beepr)
 library(shiny)
 library(shinydashboard)
 library(tippy)
 library(dplyr)
+
 
 shinyUI(
   dashboardPage(title = "test",
@@ -77,50 +83,39 @@ shinyUI(
                                   numericInput("upper_shelf",label = "Upper shelf",value = 100),#1.438),
                                   numericInput("lower_shelf",label = "Lower shelf",value = 0),
                                   checkboxGroupInput("mod", label="Specify models to be fit",
-                                                     choiceNames = c("hyperbolic tangent with fixed shelves",
-                                                                     "asymmetric hyperbolic tangent with fixed shelves",
-                                                                     "Burr distribution (asymmetric - with fixed shelves)",
-                                                                     "Kohout symmetric with fixed shelves",
-                                                                     "Kohout asymmetric with fixed shelves"),
-                                                     choiceValues = c("htf","ahtf","aburf","kohf","akohf"),
-                                                     # selected = c("htf","ahtf","aburf","kohf","akohf"),
+                                                     choiceNames = c("hyperbolic tangent","hyperbolic tangent with fixed shelves","hyperbolic tangent with fixed upper shelf",
+                                                                     "asymmetric hyperbolic tangent","asymmetric hyperbolic tangent with fixed shelves","asymemtric hyperbolic tangent with fixed upper shelf",
+                                                                     "Burr distribution (asymmetric)","Burr distribution (asymmetric - with fixed shelves)","Burr distribution (asymmetric with fixed upper shelf)",
+                                                                     "Kohout symmetric","Kohout symmetric with fixed shelves","Kohout symmetric with fixed upper shelf",
+                                                                     "Kohout asymmetric","Kohout asymmetric with fixed shelves","Kohout asymmetric with fixed upper shelf"),
+                                                     choiceValues = c("ht","htf","htuf",
+                                                                            "aht","ahtf","ahtuf",
+                                                                            "abur","aburf","aburuf",
+                                                                            "koh","kohf","kohuf",
+                                                                            "akoh","akohf","akohuf"),
                                                      inline = F, width = NULL),
-                                  conditionalPanel("input.mod.includes('htf')",
+                                  ### TODO: update the conditional panels based on new models and input names, server and rmd already updated, below not working
+                                  conditionalPanel("input.mod.includes('ht' || 'htf' || 'htuf'|| 'aht' || 'ahtf'|| 'ahtuf')",
                                                    column(12,
-                                                          h5("Starting values for hyperbolic tangent model with fixed shelves"),
-                                                          column(3,numericInput("c_htf",label = h5("c"),value = 50)),
-                                                          column(3,numericInput("t0_htf",label = h5("t0"),value = 10)),
+                                                          h5("Starting values for hyperbolic tangent models"),
+                                                          column(3,numericInput("c_prov",label = h5("c_prov"),value = 50)),
+                                                          column(3,numericInput("d_prov",label = h5("d_prov"),value = 0.0001)),
+                                                          column(3,numericInput("t0_prov",label = h5("t0_prov"),value = 10)),
                                                    )
                                   ),
-                                  conditionalPanel("input.mod.includes('ahtf')",
+                                  conditionalPanel("input.mod.includes('abur','aburf','aburuf')",
                                                    column(12,
-                                                          h5("Starting values for asymmetric hyperbolic tangent model with fixed shelves"),
-                                                          column(3,numericInput("c_ahtf",label = h5("c"),value = 50)),
-                                                          column(3,numericInput("t0_ahtf",label = h5("t0"),value = 10)),
-                                                          column(3,numericInput("d_ahtf",label = h5("d"),value = 0.0001)),
+                                                          h5("Starting values for Burr models"),
+                                                          column(3,numericInput("k_prov",label = h5("k_prov"),value = .04)),
+                                                          column(3,numericInput("m_prov",label = h5("m_prov"),value = .04)),
                                                    )
                                   ),
-                                  conditionalPanel("input.mod.includes('aburf')",
+                                  conditionalPanel("input.mod.includes('koh','kohf','kohuf','akoh','akohf','akohuf')",
                                                    column(12,
-                                                          h5("Starting values for Burr distribution model (asymmetric - with fixed shelves)"),
-                                                          column(3,numericInput("k_aburf",label = h5("k"),value = 1)),
-                                                          column(3,numericInput("t0_aburf",label = h5("t0"),value = 10)),
-                                                          column(3,numericInput("m_aburf",label = h5("m"),value = 1)),
-                                                   )
-                                  ),
-                                  conditionalPanel("input.mod.includes('kohf')",
-                                                   column(12,
-                                                          h5("Starting values for Kohout symmetric model with fixed shelves"),
-                                                          column(3,numericInput("c_kohf",label = h5("c"),value = 30)),
-                                                          column(3,numericInput("DBTT_kohf",label = h5("DBTT"),value = 10)),
-                                                   )
-                                  ),
-                                  conditionalPanel("input.mod.includes('akohf')",
-                                                   column(12,
-                                                          h5("Starting values for asymmetric Kohout symmetric model with fixed shelves"),
-                                                          column(3,numericInput("c_akohf",label = h5("c"),value = 50)),
-                                                          column(3,numericInput("t0_akohf",label = h5("t0"),value = 70)),
-                                                          column(3,numericInput("p_akohf",label = h5("p"),value = 2)),
+                                                          h5("Starting values for Kohout models"),
+                                                          column(3,numericInput("ck_prov",label = h5("ck_prov"),value = 20)),
+                                                          column(3,numericInput("p_prov",label = h5("p_prov"),value = 2)),
+                                                          column(3,numericInput("dbtt",label = h5("dbtt"),value = -5)),
                                                           
                                                    )
                                   )

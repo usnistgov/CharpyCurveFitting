@@ -30,28 +30,23 @@ server = function(input, output) {
                      dig=input$dig,
                      upper_shelf=input$upper_shelf,
                      lower_shelf=input$lower_shelf,
-                     c_htf=input$c_htf,
-                     t0_htf=input$t0_htf,
-                     c_ahtf=input$c_ahtf,
-                     t0_ahtf=input$t0_ahtf,
-                     d_ahtf=input$d_ahtf,
-                     k_aburf=input$k_aburf,
-                     t0_aburf=input$t0_aburf,
-                     m_aburf=input$m_aburf,
-                     c_kohf=input$c_kohf,
-                     DBTT_kohf=input$DBTT_kohf,
-                     c_akohf=input$c_akohf,
-                     t0_akohf=input$t0_akohf,
-                     p_akohf=input$p_akohf
+                     c_prov = input$c_prov,
+                     d_prov = input$d_prov,
+                     t0_prov = input$t0_prov,
+                     k_prov = input$k_prov,
+                     m_prov = input$m_prov,
+                     ck_prov = input$ck_prov,
+                     p_prov = input$p_prov,
+                     dbtt = input$dbtt
                      )
       
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document
       # from the code in this app).
-      rmarkdown::render(tempReport, output_file = file,
-                        params = params,
-                        envir = new.env(parent = globalenv())
-      )
+      # rmarkdown::render(tempReport, output_file = file,
+      #                   params = params,
+      #                   envir = new.env(parent = globalenv())
+      # )
     }
   )
 }

@@ -93,6 +93,11 @@ shinyUI(
                                                                             "abur","aburf","aburuf",
                                                                             "koh","kohf","kohuf",
                                                                             "akoh","akohf","akohuf"),
+                                                     selected = c("ht","htf","htuf",
+                                                                      "aht","ahtf","ahtuf",
+                                                                      "abur","aburf","aburuf",
+                                                                      "koh","kohf","kohuf",
+                                                                      "akoh","akohf","akohuf"),
                                                      inline = F, width = NULL),
                                   ### TODO: update the conditional panels based on new models and input names, server and rmd already updated, below not working
                                   conditionalPanel("input.mod.includes('ht' || 'htf' || 'htuf'|| 'aht' || 'ahtf'|| 'ahtuf')",

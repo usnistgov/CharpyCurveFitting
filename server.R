@@ -1,6 +1,6 @@
 server = function(input, output) {
   
-  source("functions_4_more_fun_v3.1.r")
+  source("functions_4_more_fun_v11.r")
   output$report <- downloadHandler(
     # For PDF output, change this to "report.pdf"
     filename = "report.pdf",
@@ -43,10 +43,10 @@ server = function(input, output) {
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document
       # from the code in this app).
-      # rmarkdown::render(tempReport, output_file = file,
-      #                   params = params,
-      #                   envir = new.env(parent = globalenv())
-      # )
+      rmarkdown::render(tempReport, output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
     }
   )
 }

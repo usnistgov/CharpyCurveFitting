@@ -35,7 +35,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r,echo=F}
+```{r,echo=F,fig.height=8}
 ############################
 # specify title for analysis
 main.title <<- params$main.title
@@ -176,94 +176,210 @@ start.akohuf = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf)
 
 ############################################
 # compute temperature for given response (y)
-# will not compute uncertainty unless se(t0) 
-# or se(DBTT) is "reasonable"
-# yval = c(28,41) # Absorbed energy values of interest to nuclear community
-# yval = 0.89   # Lateral expansion value of interest to nuclear community
-if (fit == 3) {
-  yval = 50
+if (fit==1) {
+  yval = c(28,41)  # Absorbed energy values of interest to nuclear community
+} else if (fit==2) {
+  yval = 0.89      # Lateral expansion value of interest to nuclear community
+} else if (fit==3) {
+  yval = 50        # Shear Fracture Appearance
 }
 
 ###########################
 # specify options for plots
 par(cex=1.25, lwd=1.25, cex.main=1)
-dig<<-params$dig
-colorz<<-c("red","blue","darkgreen","magenta","orange",
-         "purple","brown","cyan","chartreuse")
+dig=4
+colorz=c("red","blue","darkgreen","magenta","orange",
+         "purple","brown","cyan","chartreuse","gray",
+         "green","lightblue","violet","darkorange","gold")
 
 ############################################
 # create new temperature values for plotting
-tvals <<- seq(min(temp), max(temp), length.out=params$modPoints)
-newt <<- data.frame(temp=tvals)
-# names(newt) = c("temp")
-##########################
-# sort data by temperature
+t = seq(min(temp), max(temp), length.out=params$modPoints)
+newt = data.frame(t)
+names(newt) = c("temp")
+
+# tvals <<- seq(min(temp), max(temp), length.out=params$modPoints)
+# newt <<- data.frame(temp=tvals)
+
+
+#######################################
+# sort data by temperature for plotting
 dft = data.frame(yy,temp)
 dft = dft[order(dft$temp),]
-temp <<- dft$temp
-yy <<- dft$yy
+temp = dft$temp
+yy = dft$yy
 
 
-###########################
-# specify model information
-ID <<- c("ht","htf","aht","ahtf","abur","aburf","koh","kohf","akohf")
-titles <<- c("Symmetric TANH",   "Symmetric TANH, Fixed Shelves",
+########################################
+# save model information in a data.frame
+ID = c("ht","htf","htuf","aht","ahtf","ahtuf","abur","aburf",
+        "aburuf","koh","kohf","kohuf","akoh","akohf","akohuf")
+title = c("Symmetric TANH",   "Symmetric TANH, Fixed Shelves",
+          "Symmetric TANH, Fixed Upper Shelf",
           "Asymmetric TANH",  "Asymmetric TANH, Fixed Shelves",
+          "Asymmetric TANH, Fixed Upper Shelf",
           "Burr Distribution",  "Burr Distribution, Fixed Shelves",
+          "Burr Distribution, Fixed Upper Shelf",
           "Symmetric Kohout", "Symmetric Kohout, Fixed Shelves",
-                         "Asymmetric Kohout, Fixed Shelves")
-nmod <<- length(ID)
-num <<-c(1:nmod)
-dfmod <<- data.frame(num,ID,titles)
+          "Symmetric Kohout, Fixed Upper Shelf",
+          "Asymmetric Kohout", "Asymmetric Kohout, Fixed Shelves",
+          "Asymmetric Kohout, Fixed Upper Shelf")
+nmod = length(ID)
+num = c(1:nmod)
+dfmod = data.frame(num,ID,title)
 
 ##############################
 # fit and plot selected models
-mstats = fits(mod)
-plot.mods(mod)
+fitres = fits(mod,lower_shelf,upper_shelf,yy,temp,fit)
+mstats = fitres[[2]]
+results = fitres[[1]]
+names(results) = mod
+results
 
+################################
+# keep models with valid results
+nmod = length(mod)
+keepid = ifelse(mstats$conv %in% c(1,2,3), 1, 0)
 
-for(i in mod){
-  resname = paste("r",i,sep="")
-  res = get(resname)
-  splot(i, res)
-#  plot4(i, res)
-  nlsres(i, res)
-  rplot(i, res)
-  if (i=="akohf") bnds = "n"
-  if (bnds == "c"){
-    pcplot(i, res, "c")
-  } else if (bnds == "p") {
-    pcplot(i, res, "p")
-  } else if (bnds == "pc") {
-    pcplot(i, res, "c")
-    pcplot(i, res, "p")
-  }
-}
+# save fit message for printing
+mod.not = data.frame(mstats$mod, keepid, mstats$mess)
+mod.not = mod.not[mod.not$keepid==0, c(1,3)]
+names(mod.not) = c("Model","Convergence Message")
+mod.not
 
-#####################################
-# close output file containing graphs
-# dev.off()
+# save model stats for models that converged
+mstats2 = mstats[keepid==1, 1:5]
+mod2 = as.character(mstats2$mod)
 
-#####################################
-# Write analysis results in text file
-dash = "================================================================= "
-# sink(outfile)
-cat(main.title, "\n")
-cat("Model Selection Statistics", "\n")
-mstats
+##########################
+# plot all curves together 
+# (models with valid results only)
+plot.mods(yy,temp,mod2,results,newt$temp,dfmod,colorz,lower_shelf,upper_shelf)
 
-for(i in mod){
-  resname = paste("r",i,sep="")
-  res = get(resname)
-  cat(dash, "\n")
-  head = as.character(dfmod[dfmod$ID==i,]$titles)
-  cat(head, "\n")
-  print(summary(res))
-  if (i != "akohf") print(tfun(i,res,yval))
-}
-# sink()
-
-# beep(3)
+# #########################################################################
+# # generate plots, residual plots, bootstrap confidence/prediction bounds,
+# # and bootstrap standard errors for models with valid results
+# bout = list()
+# tpout = list()
+# for(j in 1:length(mod2)){
+#   k = mstats2$modid[j]
+#   res = results[[k]]
+#   i = mod2[j]
+#   i.res = paste(i,".res",sep="")
+#   fun = get(i)
+#   fun.res = get(i.res)
+#   print(c(i,j,k))
+# 
+# # generate single plot and residual plot  
+#   splot(yy,temp,i,res,t,fun,dfmod,lower_shelf,upper_shelf)
+#   nlsres(yy,temp,i,res,fun,dfmod,lower_shelf,upper_shelf,fit)
+# 
+# # generate bootstrap uncertainties and prediction/confidence bounds
+#   bsres = boot(mod2[j],yy,temp,t,fun,fun.res,res,fit,lower_shelf,
+#                upper_shelf,uus,uls,nsim)
+# 
+# # generate plot with confidence bounds if requested
+# # FF contains predicted values for each bootstrap sample
+#   if (bnds == "c"){
+#      FF = bsres[[4]]
+#      ci.plot(mod2[j],yy,temp,t,fun,res,fit,lower_shelf,upper_shelf,
+#           bnds,dfmod,bsres[[4]],alpha)
+#   }
+# # predict temperature given reference yy value
+#   tpout[[j]] = tfun(i,res,yval,lower_shelf,upper_shelf,alpha,bsres[1],
+#                     nsim,fit,temp,fun)
+# 
+# # save results for output file
+#   bout[[j]] = report(i,res,alpha,bsres[1])
+# }
+# 
+# 
+# #####################################
+# # Write analysis results to text file
+# dash = "================================================================="
+# bline = "   "
+# 
+# # start saving text to file
+# # sink(outfile)
+# 
+# cat(main.title, "\n")
+# cat(bline, "\n")
+# cat(paste("Alpha for Approximate Confidence Intervals = ", alpha, sep="" ), "\n")
+# cat(bline, "\n")
+# 
+# # print user-specified lower_shelf, upper_shelf and uncertainties
+# shelf = data.frame(Shelf = c("Lower","Upper"),
+#                    Value = c(lower_shelf, upper_shelf),
+#                    Unc. = c(uls, uus))
+# cat("User-specified lower and upper shelves", "\n")
+# print(shelf, row.names=FALSE)
+# cat(bline, "\n")
+# 
+# # print model comparison statistics
+# cat("Model Selection Statistics", "\n")
+# mstats2
+# cat(bline, "\n")
+# 
+# # print error messages from models
+# # that did not converge
+# if (length(mod) != length(mod2)){
+# cat("Model Fitting Convergence Messages", "\n")
+# print(mod.not)
+# cat(bline, "\n")
+# }
+# 
+# # print results for each model
+# for(j in 1:length(mod2)){
+#   k = mstats2$modid[j]
+#   res = results[[k]]
+#   i = mod2[j]
+#   fun = get(i)
+#   cat(dash, "\n")
+#   head = as.character(dfmod[dfmod$ID==i,]$title)
+#   cat(head, "\n")
+#   junk = summary(res)
+#   pnames = names(get(paste("start.",i,sep="")))
+#   cat(bline, "\n")
+# 
+# # for models with variable shelves, do not print bootstrap results
+# # for models with at least one variable shelf, only print bootstrap results
+# 
+# # print parameters for models with variable shelves
+#   if (i %in% c("ht","aht","abur","koh","akoh")){
+#       cat("Approximate Standard Errors and Confidence Intervals", "\n")
+#       cij = round(confint(res, level=1-alpha),4)
+#       row.names(junk$coefficients) = pnames
+#       print(cbind(junk$coefficients, cij))
+#       cat(paste("RMSE = ", round(junk$sigma,4), sep=""), "\n")
+#       cat(paste("Error Degrees of Freedom = ", junk$df[2], sep=""), "\n")
+#   } else {
+# # print parameters for models with at least one fixed shelf
+#       cat("Approximate Bootstrap Standard Errors and Confidence Intervals", "\n")
+#       tbout = bout[[j]]
+#       if (attributes(junk)$class == "summary.nls"){row.names(tbout) = pnames}
+#       print(tbout, digits=dig)
+#       cat(paste("RMSE = ", round(junk$sigma,4), sep=""), "\n")
+#       cat(paste("Error Degrees of Freedom = ", junk$df[2], sep=""), "\n")
+#   }
+# 
+# # print predicted temperature for a given reference yy value 
+#   cat(bline, "\n")
+#   cat("Predicted temperature for a given response", "\n")
+#   cat("Approximate uncertainties based on parametric bootstrap", "\n")
+#   print(tpout[[j]], row.names=FALSE)
+#   if (i == "aburf"){
+#       dbtt = coef(res)[2] - (1/coef(res)[1])*log( 0.5^(-1/coef(res)[3]) - 1)
+#   } else if (i == "akohf"){
+#       dbtt = coef(res)[2] + (2*coef(res)[1]/(1+coef(res)[3]))*log((1+coef(res)[3])/2)
+#   } else {
+#       dbtt = coef(res)[2]
+#   }
+# 
+# # print DBTT
+#   cat(bline, "\n")
+#   cat(paste("DBTT = ",round(dbtt,2),sep=""), "\n")
+#   cat(bline, "\n")
+# }
 
 
 ```

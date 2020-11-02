@@ -1,39 +1,36 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(shinythemes)
+library(tidyverse)
+library(minpack.lm)
+library(ggplot2)
 
 source('R/inputModule.R')
+source('R/plotModules.R')
+source('R/utils.R')
+source('R/functions_4_more_fun_v12.R')
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(theme=shinytheme('darkly'),
+ui <- shinyUI(fluidPage(theme=shinytheme('darkly'),
 
-    # Application title
     titlePanel("Charpy Energy Transition Curve-Fitting Tool"),
 
-    # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            inputUI('input')
+            inputUI('start')
         ),
 
-        # Show a plot of the generated distribution
         mainPanel(
+            plotUI('plot1')
         )
     )
-)
+))
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 
-    inputServer('input')
+    computedResults <- inputServer('start')
+    
+    plotServer('plot1',computedResults)
+    
 }
 
 # Run the application 

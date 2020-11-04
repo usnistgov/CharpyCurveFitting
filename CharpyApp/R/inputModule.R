@@ -59,17 +59,21 @@ inputUI <- function(id) {
     numericInput(ns('upper_shelf'),"Upper Shelf",100),
     numericInput(ns('lower_shelf'), "Lower Shelf",0),
     hr(),
-    selectInput(ns('def_or_cus'),'Initial Parameter Values',
-                c('Default','Custom')),
-    conditionalPanel(condition = "input.def_or_cus == 'Custom'", {
+    conditionalPanel(condition = "input.ht == '1' || input.aht == '1' ", {
       tagList(
         h5('Starting Values for Hyperbolic Tangent Models'),
         numericInput(ns('c_prov'),'c_prov',50),
         numericInput(ns('d_prov'),'d_prov',.0001),
-        numericInput(ns('t0_prov'),'t0_prov',10),
+        numericInput(ns('t0_prov'),'t0_prov',10))
+    },ns=ns),
+    conditionalPanel(condition = "input.abur == '1'", {
+      tagList(
         h5('Starting Values for Burr Models'),
         numericInput(ns('k_prov'),'k_prov',.04),
-        numericInput(ns('m_prov'),'m_prov',.04),
+        numericInput(ns('m_prov'),'m_prov',.04))
+    },ns=ns),
+    conditionalPanel(condition = "input.koh == '1' || input.akoh == '1'", {
+      tagList(
         h5('Starting Values for Kohout Models'),
         numericInput(ns('ck_prov'),'ck_prov',20),
         numericInput(ns('p_prov'),'p_prov',2),
@@ -92,16 +96,15 @@ inputServer <- function(id) {
         
         start = list()
         dataset = read_csv(input$datafile$datapath)
-        
-        is_custom = input$def_or_cus == 'Custom'
-        c_prov = ifelse(is_custom, input$c_prov, 50)
-        d_prov = ifelse(is_custom, input$d_prov, .0001)
-        t0_prov = ifelse(is_custom, input$t0_prov, 10)
-        k_prov = ifelse(is_custom, input$k_prov, .04)
-        m_prov = ifelse(is_custom, input$m_prov, .04)
-        ck_prov = ifelse(is_custom, input$ck_prov, 20)
-        p_prov = ifelse(is_custom, input$p_prov, 2)
-        dbtt = ifelse(is_custom, input$dbtt, -5)
+
+        c_prov = input$c_prov
+        d_prov = input$d_prov
+        t0_prov = input$t0_prov
+        k_prov = input$k_prov
+        m_prov = input$m_prov
+        ck_prov = input$ck_prov
+        p_prov = input$p_prov
+        dbtt = input$dbtt
         
         upper_shelf = input$upper_shelf
         lower_shelf = input$lower_shelf
@@ -167,7 +170,7 @@ inputServer <- function(id) {
             start$akohuf = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf)
           }
         }
-        
+
         ## translating to Jolene's variables
         mod = names(start)
         temp = dataset$temperature
@@ -178,7 +181,7 @@ inputServer <- function(id) {
         uls = 0.05
         uus = upper_shelf*0.05
         fit = as.numeric(input$response_type)
-        
+
         if (fit==1) {
           yval = c(28,41)  # Absorbed energy values of interest to nuclear community
         } else if (fit==2) {
@@ -198,7 +201,6 @@ inputServer <- function(id) {
         mstats = fitres[[2]]
         results = fitres[[1]]
         names(results) = mod
-        
         ################################
         # keep models with valid results
         nmod = length(mod)

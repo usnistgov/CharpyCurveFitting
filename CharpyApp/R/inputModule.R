@@ -97,17 +97,17 @@ inputServer <- function(id) {
         start = list()
         dataset = read_csv(input$datafile$datapath)
 
-        c_prov = input$c_prov
-        d_prov = input$d_prov
-        t0_prov = input$t0_prov
-        k_prov = input$k_prov
-        m_prov = input$m_prov
-        ck_prov = input$ck_prov
-        p_prov = input$p_prov
-        dbtt = input$dbtt
+        c_prov = as.numeric(input$c_prov)
+        d_prov = as.numeric(input$d_prov)
+        t0_prov = as.numeric(input$t0_prov)
+        k_prov = as.numeric(input$k_prov)
+        m_prov = as.numeric(input$m_prov)
+        ck_prov = as.numeric(input$ck_prov)
+        p_prov = as.numeric(input$p_prov)
+        dbtt = as.numeric(input$dbtt)
         
-        upper_shelf = input$upper_shelf
-        lower_shelf = input$lower_shelf
+        upper_shelf = as.numeric(input$upper_shelf)
+        lower_shelf = as.numeric(input$lower_shelf)
     
         
         if(input$ht) {

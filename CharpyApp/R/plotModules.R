@@ -2,7 +2,10 @@ plotUI <- function(id){
   ns = NS(id)
   
   tagList(
-    plotOutput(ns('plot_fits'))
+    br(),
+    plotOutput(ns('plot_fits')),
+    br(),
+    uiOutput(ns('which_fits')),
   )
 }
 
@@ -11,7 +14,15 @@ plotServer <- function(id,computedResults) {
     id,
     function(input, output, session) {
       
+      output$which_fits <- renderUI({
+        ns <- session$ns
+        mods = computedResults()$mstats$mod
+        checkboxGroupInput(ns('fits_to_show'),'Fits to Show',choices=mods,selected=mods)
+      })
+      
       output$plot_fits <- renderPlot({
+        
+        req(input$fits_to_show)
         
         mstats = computedResults()$mstats
         results = computedResults()$results
@@ -20,7 +31,7 @@ plotServer <- function(id,computedResults) {
         #            upper_shelf, lower_shelf
         # could attach the list, but might be sloppy coding
         
-        mod = other_vars$mod
+        mod = other_vars$mod[other_vars$mod %in% input$fits_to_show]
         temp = other_vars$temp
         yy = other_vars$yy
         nn = other_vars$nn
@@ -42,15 +53,15 @@ plotServer <- function(id,computedResults) {
           inds = df_to_plot$model == model_name
 
           if(grepl('uf$',model_name)) {
-            df_to_plot$value[inds] = myfun(coef(results[[model_name]], 
+            df_to_plot$value[inds] = myfun(coef(results[[model_name]]), 
                                               newt$temp, 
-                                              other_vars$upper_shelf))
+                                              other_vars$upper_shelf)
               
           } else if(grepl('f$',model_name)) {
-            df_to_plot$value[inds] = myfun(coef(results[[model_name]], 
+            df_to_plot$value[inds] = myfun(coef(results[[model_name]]), 
                                               newt$temp,
                                               other_vars$lower_shelf,
-                                              other_vars$upper_shelf))
+                                              other_vars$upper_shelf)
               
           } else {
             df_to_plot$value[inds] = myfun(coef(results[[model_name]]),

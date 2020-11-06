@@ -208,7 +208,6 @@ fitmod = function(mod,upper_shelf,lower_shelf,yy,temp,fun,start,fit){
 # generate fit results & model selection criteria
 # fit results are saved globally
 fits <- function(mod,start,lower_shelf,upper_shelf,yy,temp,fit){
-
 # initialize output variables
 nmod = length(mod)
 modid = rep(NA, nmod)
@@ -229,35 +228,35 @@ for(i in mod){
 j = j + 1
 
 if (i=="ht"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ht.res,start$ht,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ht.res,as.numeric(start$ht),fit)}
 if (i=="aht"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aht.res,start$aht,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aht.res,as.numeric(start$aht),fit)}
 if (i=="htf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,htf.res,start$htf,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,htf.res,as.numeric(start$htf),fit)}
 if (i=="htuf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,htuf.res,start$htuf,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,htuf.res,as.numeric(start$htuf),fit)}
 if (i=="ahtf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ahtf.res,start$ahtf,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ahtf.res,as.numeric(start$ahtf),fit)}
 if (i=="ahtuf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ahtuf.res,start$ahtuf,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ahtuf.res,as.numeric(start$ahtuf),fit)}
 if (i=="abur"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,abur.res,start$abur,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,abur.res,as.numeric(start$abur),fit)}
 if (i=="aburf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aburf.res,start$aburf,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aburf.res,as.numeric(start$aburf),fit)}
 if (i=="aburuf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aburuf.res,start$aburuf,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aburuf.res,as.numeric(start$aburuf),fit)}
 if (i=="koh"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,koh.res,start$koh,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,koh.res,as.numeric(start$koh),fit)}
 if (i=="kohf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,kohf.res,start$kohf,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,kohf.res,as.numeric(start$kohf),fit)}
 if (i=="kohuf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,kohuf.res,start$kohuf,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,kohuf.res,as.numeric(start$kohuf),fit)}
 if (i=="akoh"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akoh.res,start$akoh,fit)}
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akoh.res,as.numeric(start$akoh),fit)}
 if (i=="akohf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akohf.res,start$akohf,fit)} 
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akohf.res,as.numeric(start$akohf),fit)} 
 if (i=="akohuf"){
-    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akohuf.res,start$akohuf,fit)} 
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akohuf.res,as.numeric(start$akohuf),fit)} 
 
 # save model statistics
     modid[j] = j

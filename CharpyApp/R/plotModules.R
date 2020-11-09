@@ -3,9 +3,17 @@ plotUI <- function(id){
   
   tagList(
     br(),
+    h3('Fitted Curves',align='center'),
     plotOutput(ns('plot_fits')),
     br(),
-    uiOutput(ns('which_fits')),
+    fluidRow(
+    column(width=4,uiOutput(ns('which_fits_ui'))),
+    column(width=4,uiOutput(ns('show_CIs_ui')))
+    ),
+    br(),
+    hr(),
+    h3("Fit Metrics",align='center'),
+    DT::dataTableOutput(ns('fit_metrics_table'))
   )
 }
 
@@ -14,11 +22,32 @@ plotServer <- function(id,computedResults) {
     id,
     function(input, output, session) {
       
-      output$which_fits <- renderUI({
+      output$which_fits_ui <- renderUI({
         ns <- session$ns
         mods = computedResults()$mstats$mod
         checkboxGroupInput(ns('fits_to_show'),'Fits to Show',choices=mods,selected=mods)
       })
+      
+      output$show_CIs_ui <- renderUI({
+        if(is.null(computedResults()$mstats)){
+          return(NULL)
+        }
+        ns <- session$ns
+        selectInput(ns('show_CIs'),'Show Uncertainties?',
+                    choices = c('Yes','No'),
+                    selected = 'No')
+      })
+      
+      output$fit_metrics_table <- DT::renderDataTable({
+        mstats = computedResults()$mstats
+        
+        outdf = mstats[,2:6]
+        outdf$conv = ifelse(outdf$conv %in% c(1,2,3),'Yes','No')
+        names(outdf) = c('Model','rMSE','AIC','BIC','Converged?')
+        
+        outdf
+        
+      }, options = list(searching = FALSE))
       
       output$plot_fits <- renderPlot({
         
@@ -79,6 +108,11 @@ plotServer <- function(id,computedResults) {
           ylab(yvar_name) +
           ggtitle(paste(yvar_name,'vs.','Temperature')) +
           theme(plot.title = element_text(hjust = 0.5))
+        
+        if(input$show_CIs == 'Yes') {
+          
+        }
+        
         p
         
       })

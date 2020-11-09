@@ -161,25 +161,27 @@ ck_prov = 30
 p_prov = 2
 dbtt = 30
 
-start.ht    = c(c=c_prov, t0=t0_prov, lse=lower_shelf, use=upper_shelf)
-start.htf   = c(c=c_prov, t0=t0_prov)
-start.htuf  = c(c=c_prov, t0=t0_prov, lse=lower_shelf)
+start = list()
 
-start.aht   = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf, use=upper_shelf)
-start.ahtf  = c(c=c_prov, t0=t0_prov, d=d_prov)
-start.ahtuf = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf)
+start$ht    = c(c=c_prov, t0=t0_prov, lse=lower_shelf, use=upper_shelf)
+start$htf   = c(c=c_prov, t0=t0_prov)
+start$htuf  = c(c=c_prov, t0=t0_prov, lse=lower_shelf)
 
-start.abur   = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf, use=upper_shelf)
-start.aburf  = c(k=k_prov, t0=t0_prov, m=m_prov) 
-start.aburuf = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf) 
+start$aht   = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf, use=upper_shelf)
+start$ahtf  = c(c=c_prov, t0=t0_prov, d=d_prov)
+start$ahtuf = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf)
 
-start.koh   = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf, use=upper_shelf)
-start.kohf  = c(c=ck_prov, DBTT=t0_prov)
-start.kohuf = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf)
+start$abur   = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf, use=upper_shelf)
+start$aburf  = c(k=k_prov, t0=t0_prov, m=m_prov) 
+start$aburuf = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf) 
 
-start.akoh   = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf, use=upper_shelf )
-start.akohf  = c(c=ck_prov, t0=dbtt, p=p_prov)
-start.akohuf = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf)
+start$koh   = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf, use=upper_shelf)
+start$kohf  = c(c=ck_prov, DBTT=t0_prov)
+start$kohuf = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf)
+
+start$akoh   = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf, use=upper_shelf )
+start$akohf  = c(c=ck_prov, t0=dbtt, p=p_prov)
+start$akohuf = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf)
 
 
 ############################################
@@ -233,7 +235,7 @@ dfmod = data.frame(num,ID,title)
 
 ##############################
 # fit and plot selected models
-fitres = fits(mod,lower_shelf,upper_shelf,yy,temp,fit)
+fitres = fits(mod,start,lower_shelf,upper_shelf,yy,temp,fit)
 mstats = fitres[[2]]
 results = fitres[[1]]
 names(results) = mod

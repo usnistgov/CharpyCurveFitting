@@ -18,44 +18,45 @@ inputUI <- function(id) {
     checkboxInput(ns('ht'),'Hyperbolic Tangent',FALSE),
     conditionalPanel(condition = "input.ht == '1'",{
                      checkboxGroupInput(ns('ht_opt'),label=NULL,
-                         choices = c('Shelves not fixed'='snf',
-                                     'Both shelves fixed'='bsf',
-                                     'Upper shelf fixed'='usf'))
+                         choices = c('Shelves not fixed (ht)'='snf',
+                                     'Both shelves fixed (htf)'='bsf',
+                                     'Upper shelf fixed (htuf)'='usf'))
     },ns=ns),
     
-    checkboxInput(ns('aht'),'Assymetric Hyperbolic Tangent'),
+    checkboxInput(ns('aht'),'Asymmetric Hyperbolic Tangent'),
     conditionalPanel(condition = "input.aht == '1'",{
                      checkboxGroupInput(ns('aht_opt'),label=NULL,
-                         choices = c('Shelves not fixed'='snf',
-                                     'Both shelves fixed'='bsf',
-                                     'Upper shelf fixed'='usf'))
+                         choices = c('Shelves not fixed (aht)'='snf',
+                                     'Both shelves fixed (ahtf)'='bsf',
+                                     'Upper shelf fixed (ahtuf)'='usf'))
     },ns=ns),
     
-    checkboxInput(ns('abur'),'Assymetric Burr'),
+    checkboxInput(ns('abur'),'Asymmetric Burr'),
     conditionalPanel(condition = "input.abur == '1'",{
       checkboxGroupInput(ns('abur_opt'),label=NULL,
-                         choices = c('Shelves not fixed'='snf',
-                                     'Both shelves fixed'='bsf',
-                                     'Upper shelf fixed'='usf'))
+                         choices = c('Shelves not fixed (abur)'='snf',
+                                     'Both shelves fixed (aburf)'='bsf',
+                                     'Upper shelf fixed (aburuf)'='usf'))
     },ns=ns),
     
     checkboxInput(ns('koh'),'Kohout (symmetric)'),
     conditionalPanel(condition = "input.koh == '1'",{
       checkboxGroupInput(ns('koh_opt'),label=NULL,
-                         choices = c('Shelves not fixed'='snf',
-                                     'Both shelves fixed'='bsf',
-                                     'Upper shelf fixed'='usf'))
+                         choices = c('Shelves not fixed (koh)'='snf',
+                                     'Both shelves fixed (kohf)'='bsf',
+                                     'Upper shelf fixed (kohuf)'='usf'))
     },ns=ns),
     
     checkboxInput(ns('akoh'),'Kohout (asymmetric)'),
     conditionalPanel(condition = "input.akoh == '1'",{
       checkboxGroupInput(ns('akoh_opt'),label=NULL,
-                         choices = c('Shelves not fixed'='snf',
-                                     'Both shelves fixed'='bsf',
-                                     'Upper shelf fixed'='usf'))
+                         choices = c('Shelves not fixed (akoh)'='snf',
+                                     'Both shelves fixed (akohf)'='bsf',
+                                     'Upper shelf fixed (akohuf)'='usf'))
     },ns=ns),
     hr(),
-    h5("Specify Fixed Upper and Lower Shelves (if applicable)"),
+    h5("Specify upper and lower shelves"),
+    h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
     numericInput(ns('upper_shelf'),"Upper Shelf",100),
     numericInput(ns('lower_shelf'), "Lower Shelf",0),
     hr(),

@@ -19,7 +19,10 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
         ),
 
         mainPanel(
-            plotUI('plot1')
+            tabsetPanel(
+                tabPanel('Model Fits', plotFitsUI('fits_and_metrics')),
+                tabPanel('Residual Plots', plotResidsUI('resids'))
+            )
         )
     )
 ))
@@ -31,7 +34,9 @@ server <- function(input, output, session) {
     
     boots <- compute_boot('placeholder',computedResults)
     
-    plotServer('plot1',computedResults,boots)
+    plotFitsServer('fits_and_metrics',computedResults,boots)
+    
+    plotResidsServer('resids',computedResults)
     
 }
 

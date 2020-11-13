@@ -1,4 +1,4 @@
-plotUI <- function(id){
+plotFitsUI <- function(id){
   ns = NS(id)
   
   tagList(
@@ -17,7 +17,7 @@ plotUI <- function(id){
   )
 }
 
-plotServer <- function(id,computedResults,boots) {
+plotFitsServer <- function(id,computedResults,boots) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -119,6 +119,95 @@ plotServer <- function(id,computedResults,boots) {
           p = p + geom_ribbon(data=boot_data, aes(x=x, y=f, ymin=lwr.conf, ymax=upr.conf, fill=model), 
                               alpha=0.1, linetype=0)
         }
+        
+        p
+        
+      })
+      
+    }
+  )
+}
+
+
+plotResidsUI <- function(id) {
+  ns = NS(id)
+  
+  tagList(
+    br(),
+    plotOutput(ns('resid_plot')),
+    uiOutput(ns('which_model'))
+  )
+  
+}
+
+plotResidsServer <- function(id,computedResults) {
+  moduleServer(
+    id,
+    function(input,output,session) {
+      
+      output$which_model = renderUI({
+        ns <- session$ns
+        mods = computedResults()$mstats$mod
+        selectInput(ns('which_model'),'Model',choices=mods,selected=mods[1])
+      })
+      
+      output$resid_plot = renderPlot({
+        req(input$which_model)
+        
+        mstats = computedResults()$mstats
+        results = computedResults()$results
+        other_vars = computedResults()$other_vars
+        #other_vars: mod, temp, yy, nn, n.new, nsim, uls, uus, fit, yval, t, newt,
+        #            upper_shelf, lower_shelf
+        # could attach the list, but might be sloppy coding
+        
+        mod = other_vars$mod[other_vars$mod %in% input$which_model]
+        temp = other_vars$temp
+        yy = other_vars$yy
+        nn = other_vars$nn
+        newt = other_vars$newt
+        lower_shelf = other_vars$lower_shelf
+        upper_shelf = other_vars$upper_shelf
+        
+        # prepare df for plotting
+        original_data = data.frame(yy=yy,temp=temp)
+        num_models = length(mod)
+        df_to_plot = data.frame(temp = temp,
+                                yy = yy,
+                                value = 0,
+                                model = mod)
+        
+        
+
+        model_name = input$which_model
+        myfun = eval(parse(text=model_name))
+        inds = df_to_plot$model == model_name
+        
+        if(grepl('uf$',model_name)) {
+          df_to_plot$value[inds] = myfun(coef(results[[model_name]]), 
+                                         df_to_plot$temp, 
+                                         other_vars$upper_shelf)
+          
+        } else if(grepl('f$',model_name)) {
+          df_to_plot$value[inds] = myfun(coef(results[[model_name]]), 
+                                         df_to_plot$temp,
+                                         other_vars$lower_shelf,
+                                         other_vars$upper_shelf)
+          
+        } else {
+          df_to_plot$value[inds] = myfun(coef(results[[model_name]]),
+                                         df_to_plot$temp)
+        }
+        
+         
+          
+        yvar_name = c('KV','LE','SFA')[other_vars$fit]
+        
+        p = ggplot(data=df_to_plot,aes(x=temp,y=yy-value)) + 
+          geom_point() +
+          geom_hline(yintercept=0) +
+          ggtitle(paste(yvar_name,': Residual Plot',sep='')) +
+          theme(plot.title = element_text(hjust = 0.5))
         
         p
         

@@ -57,8 +57,11 @@ inputUI <- function(id) {
     hr(),
     h5("Specify upper and lower shelves"),
     h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
-    numericInput(ns('upper_shelf'),"Upper Shelf",100),
+    numericInput(ns('upper_shelf'),"Upper Shelf",1.43),
     numericInput(ns('lower_shelf'), "Lower Shelf",0),
+    hr(),
+    sliderInput(ns('nsim'),"Number Bootstrap Iterations per Model",
+                min=50,max=1000,value=50,step=50),
     hr(),
     conditionalPanel(condition = "input.ht == '1' || input.aht == '1' ", {
       tagList(
@@ -109,6 +112,8 @@ inputServer <- function(id) {
         
         upper_shelf = as.numeric(input$upper_shelf)
         lower_shelf = as.numeric(input$lower_shelf)
+        nsim = as.numeric(input$nsim)
+        conf_level = as.numeric(input$conf_level)
     
         
         if(input$ht) {
@@ -178,9 +183,6 @@ inputServer <- function(id) {
         yy = dataset$y
         nn = length(yy)
         n.new = 20
-        nsim = 1000
-        uls = 0.05
-        uus = upper_shelf*0.05
         fit = as.numeric(input$response_type)
 
         if (fit==1) {
@@ -190,6 +192,36 @@ inputServer <- function(id) {
         } else if (fit==3) {
           yval = 50        # Shear Fracture Appearance
         }
+        
+        
+        # for LSE, use bounds [laa, lbb] for all responses
+        #
+        # for USE, 
+        #  1.  For KV and LE, assume normal(USE, u(USE))
+        #  2.  for SFA, use bounds [c,d] for SFA (fit=3) (d=100)
+        
+        # default values for each response
+        if (fit == 1) {
+          laa = 1.5
+          lbb = 2.5
+          uls = (lbb - laa)/sqrt(12)
+          uus = 0.05*upper_shelf
+          
+        } else if (fit == 2){
+          laa = 0
+          lbb = 0.1
+          uls = (lbb - laa)/sqrt(12)
+          uus = 0.05*upper_shelf
+          
+        } else if (fit == 3) {
+          #upper_shelf = 100
+          #lower_shelf = 0
+          laa = 0
+          lbb = 0
+          uls = 0
+          uus = 0
+        }
+        
         
         # create new temperature values for plotting
         t = seq(min(temp), max(temp), length.out=n.new)
@@ -225,12 +257,18 @@ inputServer <- function(id) {
                           nsim = nsim,
                           uls = uls,
                           uus = uus,
+                          laa = laa,
+                          lbb = lbb,
                           fit = fit,
                           yval = yval,
                           t = t,
                           newt = newt,
                           upper_shelf = upper_shelf,
-                          lower_shelf = lower_shelf)
+                          lower_shelf = lower_shelf,
+                          nsim = nsim,
+                          mstats2 = mstats2,
+                          mod2 = mod2,
+                          conf_level = conf_level)
         
         return(list(mstats=mstats,results=results,other_vars=other_vars))
         

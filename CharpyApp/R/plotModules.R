@@ -17,7 +17,7 @@ plotUI <- function(id){
   )
 }
 
-plotServer <- function(id,computedResults) {
+plotServer <- function(id,computedResults,boots) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -38,6 +38,7 @@ plotServer <- function(id,computedResults) {
                     selected = 'No')
       })
       
+      
       output$fit_metrics_table <- DT::renderDataTable({
         mstats = computedResults()$mstats
         
@@ -48,6 +49,7 @@ plotServer <- function(id,computedResults) {
         outdf
         
       }, options = list(searching = FALSE))
+      
       
       output$plot_fits <- renderPlot({
         
@@ -96,6 +98,8 @@ plotServer <- function(id,computedResults) {
             df_to_plot$value[inds] = myfun(coef(results[[model_name]]),
                                            newt$temp)
           }
+          
+          
             
           
         }
@@ -110,7 +114,10 @@ plotServer <- function(id,computedResults) {
           theme(plot.title = element_text(hjust = 0.5))
         
         if(input$show_CIs == 'Yes') {
-          
+          boot_data = boots()
+          boot_data = boot_data[boot_data$model %in% input$fits_to_show,]
+          p = p + geom_ribbon(data=boot_data, aes(x=x, y=f, ymin=lwr.conf, ymax=upr.conf, fill=model), 
+                              alpha=0.1, linetype=0)
         }
         
         p

@@ -751,112 +751,111 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
 # using parametric bootstrap.  
 # return predicted values for plotting in ci.plot function
 boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
-                uus,uls,nsim){
-
-# save original data in data frame
+                uus,laa,lbb,nsim){
+  
+  # save original data in data frame
   df.old = data.frame(x,yy)
   nn = length(x)
-
-# save important variables
+  
+  # save important variables
   beta = coef(res)
   npar = length(beta)
   dof = nn - npar
   f.old = pfun(mod,res,x,fun,lower_shelf,upper_shelf)
   sigma = sqrt( sum( (yy - f.old)^2) / dof )
-
-# generate upper and lower limits for model parameters
+  
+  # generate upper and lower limits for model parameters
   npar = length(beta)
   lims = limits(mod,npar,fit)
   low = lims[,1]
   hi = lims[,2]
   ctrl = nls.lm.control(maxiter=1000)
-
-# prepare data for bootstrap
+  
+  # prepare data for bootstrap
   f.new = pfun(mod,res,x.new,fun,lower_shelf,upper_shelf)
   if (mod %in% c("ht","aht","abur","koh","akoh")){  
-      ncols = npar + 1
+    ncols = npar + 1
   } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
-      ncols = npar + 3
+    ncols = npar + 3
   } else {
-      ncols = npar + 2
+    ncols = npar + 2
   }
-
-df.mc <- data.frame(x=x.new, f=f.new)
-L = nsim
-F <- matrix(nrow=L,ncol=n.new)
-BBeta <- matrix(nrow=L, ncol=ncols)
-
-# bootstrap loop
-for (l in (1:L)) {
-
-# generate y response data
-# values can't be less than zero for any response
-# for SFA, ygen <= 100
-  ygen <- f.old + rnorm(nn,0,sigma)
-  ygen = ifelse(ygen < 0, abs(ygen), ygen)
-  ygen = ifelse((fit==3 & ygen > 100), 200-ygen, ygen) 
-
-# generate random values of upper and lower shelves
-# for models with at least one fixed shelf
-# given user-specified uncertainties, uls and uus
-#   1.  use uniform(0, a) to generate a random lower_shelf, 
-#       where a = uls*sqrt(12) (solve for a+ in Eq. 6 of GUM)
-#   2.  use normal(upper_shelf, uus) to generate
-#       a random upper_shelf value for all responses except for SFA
-#   3.  for SFA, use uniform(b, 100) to generate a random upper_shelf,
-#       where b = 100-uus*sqrt(12) (solve for a- in Eq. 6 of GUM)
-  lshelf = runif(1, 0, uls*sqrt(12))
-  ushelf = ifelse(fit==3, runif(1, 100-uus*sqrt(12), 100), 
-                          rnorm(1, upper_shelf, uus))
-  if (ushelf < lshelf) ushelf = lshelf*1.10
   
-# fit model for bootstrap sample, generate statistics
-# constraints on model fits should ensure that shelves
-# aren't outside the acceptable range of values
-  if (mod %in% c("ht","aht","abur","koh","akoh")){ 
-     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                      lower=low, upper=hi, control=ctrl)
-  } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
-     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                      lower_shelf=lower_shelf, upper_shelf=upper_shelf, 
-                      lower=low, upper=hi, control=ctrl)
-  } else {
-     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                      upper_shelf=upper_shelf, 
-                      lower=low, upper=hi, control=ctrl)
-  }
-
-# for cases where there is no fitting error, save results
-# otherwise go to next sample
-  if (rl.nlm$info %in% c(1,2,3)){
-
-# save values for confidence and prediction intervals
+  df.mc <- data.frame(x=x.new, f=f.new)
+  L = nsim
+  FF <- matrix(nrow=L,ncol=length(x.new))
+  BBeta <- matrix(nrow=L, ncol=ncols)
+  
+  # bootstrap loop
+  for (l in (1:L)) {
+    
+    # generate y response data
+    # values can't be less than zero for any response
+    # for SFA, ygen <= 100
+    ygen <- f.old + rnorm(nn,0,sigma)
+    ygen = ifelse(ygen < 0, abs(ygen), ygen)
+    ygen = ifelse((fit==3 & ygen > 100), 200-ygen, ygen) 
+    
+    # generate random values of upper and lower shelves
+    # for models with at least one fixed shelf
+    # given user-specified uncertainties, uls and uus
+    #   1.  use uniform(laa, lbb) to generate a random lower_shelf 
+    #   2.  use normal(upper_shelf, uus) to generate
+    #       a random upper_shelf value for all responses except for SFA
+    #   3.  for SFA, use uniform(b, 100) to generate a random upper_shelf,
+    #       where b = 100-uus*sqrt(12) (solve for a- in Eq. 6 of GUM)
+    lshelf = runif(1, laa, lbb)
+    ushelf = ifelse(fit==3, runif(1, 100-uus*sqrt(12), 100), 
+                    rnorm(1, upper_shelf, uus))
+    if (ushelf < lshelf) ushelf = lshelf*1.10
+    
+    # fit model for bootstrap sample, generate statistics
+    # constraints on model fits should ensure that shelves
+    # aren't outside the acceptable range of values
+    if (mod %in% c("ht","aht","abur","koh","akoh")){ 
+      rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                       lower=low, upper=hi, control=ctrl)
+    } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
+      rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                       lower_shelf=lower_shelf, upper_shelf=upper_shelf, 
+                       lower=low, upper=hi, control=ctrl)
+    } else {
+      rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                       upper_shelf=upper_shelf, 
+                       lower=low, upper=hi, control=ctrl)
+    }
+    
+    # for cases where there is no fitting error, save results
+    # otherwise go to next sample
+    if (rl.nlm$info %in% c(1,2,3)){
+      
+      # save values for confidence and prediction intervals
       fl = pfun(mod,rl.nlm,x.new,fun,lower_shelf,upper_shelf)
-      F[l,] <- fl
-
-# save parameter estimates, shelves, and RMSE (sig)
-# (lshelf and ushelf saved for models with at least one fixed shelf)
+      FF[l,] <- fl
+      
+      # save parameter estimates, shelves, and RMSE (sig)
+      # (lshelf and ushelf saved for models with at least one fixed shelf)
       pred = pfun(mod,rl.nlm,x,fun,lower_shelf,upper_shelf)
       sig = sqrt(sum((yy - pred)^2) / (nn - npar))
       if (mod %in% c("ht","aht","abur","koh","akoh")){
-          BBeta[l,] <- c(coef(rl.nlm), sig)
+        BBeta[l,] <- c(coef(rl.nlm), sig)
       } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
-          BBeta[l,] <- c(coef(rl.nlm), lshelf, ushelf, sig)
+        BBeta[l,] <- c(coef(rl.nlm), lshelf, ushelf, sig)
       } else {
-          BBeta[l,] <- c(coef(rl.nlm), ushelf, sig)
+        BBeta[l,] <- c(coef(rl.nlm), ushelf, sig)
       }
-  } else {
+    } else {
       next   ### go to next sample
-  }
-
-}   ### end of bootstrap loop
-
+    }
+    
+  }   ### end of bootstrap loop
+  
   BBeta = BBeta[!is.na(BBeta[,1]),]
   nbeta = length(BBeta[,1])
   vcvbeta = cov(BBeta[,1:(ncols-1)])
   sebeta = sqrt(diag(vcvbeta))
-
-  return(list(BBeta,nbeta,vcvbeta,F))
+  
+  return(list('BBeta'=BBeta,'nbeta'=nbeta,'vcvbeta'=vcvbeta, 'FF'=FF))
 } ### end of boot
 
 
@@ -866,46 +865,48 @@ for (l in (1:L)) {
 ci.plot = function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,
                    bnds,dfmod,FF,alpha){
 
-mtitle = paste(main.title,": ", dfmod[dfmod$ID==mod,3], sep="")
+  mtitle = paste(main.title,": ", dfmod[dfmod$ID==mod,3], sep="")
 
-# save important variables
+  # save important variables
   beta = coef(res)
   nn = length(x)
   npar = length(beta)
   dof = nn - npar
   tval = qt(1-alpha/2, dof)
 
-# save original data in data frame for plotting
+  # save original data in data frame for plotting
   df.old = data.frame(x,yy)
 
-# generate predicted values
+  # generate predicted values
   f.new = pfun(mod,res,x.new,fun,lower_shelf,upper_shelf)
 
-# compute confidence bounds
-# basic bootstrap intervals do not always contain the predicted value,
-# use studentized bootstrap intervals instead
+  # compute confidence bounds
+  # basic bootstrap intervals do not always contain the predicted value,
+  # use studentized bootstrap intervals instead
 
-# studentized bootstrap intervals
-sdpred = as.vector(sapply(as.data.frame(FF), sd, na.rm = TRUE))
-ci.lo = f.new - tval*sdpred
-ci.hi = f.new + tval*sdpred
-df.mc = data.frame(x=x.new, f=f.new, lwr.conf=ci.lo, upr.conf=ci.hi)
+  # studentized bootstrap intervals
+  sdpred = as.vector(sapply(as.data.frame(FF), sd, na.rm = TRUE))
+  ci.lo = f.new - tval*sdpred
+  ci.hi = f.new + tval*sdpred
+  df.mc = data.frame(x=x.new, f=f.new, lwr.conf=ci.lo, upr.conf=ci.hi)
 
-# confidence bounds for restricted paramters:
-# https://www.stat.berkeley.edu/~stark/SticiGui/Text/confidenceIntervals.htm
+  # confidence bounds for restricted paramters:
+  # https://www.stat.berkeley.edu/~stark/SticiGui/Text/confidenceIntervals.htm
 
-# lower bound must be >= 0
-df.mc[,3] = ifelse(df.mc[,3] < 0, 0, df.mc[,3])
+  # lower bound must be >= 0
+  df.mc[,3] = ifelse(df.mc[,3] < 0, 0, df.mc[,3])
 
-# upper bound must be <= 100 for fit=3 (SFA, %)
-if(fit==3){ df.mc[,4] = ifelse(df.mc[,4] > 100, 100, df.mc[,4])}
+  # upper bound must be <= 100 for fit=3 (SFA, %)
+  if(fit==3){ 
+    df.mc[,4] = ifelse(df.mc[,4] > 100, 100, df.mc[,4])
+  }
 
-# generate basic plot
+  # generate basic plot
   pl = ggplot(data=df.old) + geom_point(aes(x=temp,y=yy)) + ggtitle(mtitle) +
      xlab("Temperature, C") + ylab(y.label) +
      theme_bw() +  theme(plot.title = element_text(hjust = 0.5))
 
-# add confidence bounds to plot
+  # add confidence bounds to plot
   Ltitle = expression(paste("Conf. \n Interval"))
   aper = paste(round(100*(1-alpha),0), "%")
   pl = pl + 

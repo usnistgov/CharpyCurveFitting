@@ -29,7 +29,9 @@ server <- function(input, output, session) {
 
     computedResults <- inputServer('start')
     
-    plotServer('plot1',computedResults)
+    boots <- compute_boot('placeholder',computedResults)
+    
+    plotServer('plot1',computedResults,boots)
     
 }
 

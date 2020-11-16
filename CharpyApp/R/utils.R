@@ -1,66 +1,54 @@
-compute_boot <- function(id,computedResults) {
-  
-  moduleServer(
-    id,
-    
-      function(input,output,session) {
-        
-      
-        boots <- eventReactive(computedResults, {
-        
-          mstats = computedResults()$mstats
-          results = computedResults()$results
-          other_vars = computedResults()$other_vars
-          
-          # generate bootstrap uncertainties and prediction/confidence bounds
-          bout = list()
-          
-          for(j in 1:length(other_vars$mod2)){
-            k = other_vars$mstats2$modid[j]
-            res = results[[k]]
-            i = other_vars$mod2[j]
-            i.res = paste(i,".res",sep="")
-            fun = get(i)
-            fun.res = get(i.res)
-            
-            # generate bootstrap uncertainties and prediction/confidence bounds
-            bsres = boot(other_vars$mod2[j],other_vars$yy, other_vars$temp,
-                         other_vars$t,
-                         fun,fun.res,res,
-                         other_vars$fit,
-                         other_vars$lower_shelf,
-                         other_vars$upper_shelf,
-                         other_vars$uus,
-                         other_vars$laa,
-                         other_vars$lbb,
-                         other_vars$nsim)
-            
-            
-            
-            bout[[i]] = compute_boot_CIs(other_vars$mod2[j],
-                                         other_vars$yy,
-                                         other_vars$temp,
-                                         other_vars$t,
-                                         fun,
-                                         res,
-                                         other_vars$fit,
-                                         other_vars$lower_shelf,
-                                         other_vars$upper_shelf,
-                                         bsres[[4]],
-                                         1 - other_vars$conf_level)
-        
-          }
-          
-          mod_name = names(bout)
-          nrows_each = nrow(bout[[1]])
-          bout = bind_rows(bout)
-          bout$model = rep(mod_name,each=nrows_each)
-          return(bout)
-      
-        })
+compute_boot <- function(computedResults) {
 
-    }
-  )
+  mstats = computedResults$mstats
+  results = computedResults$results
+  other_vars = computedResults$other_vars
+  
+  # generate bootstrap uncertainties and prediction/confidence bounds
+  bout = list()
+  
+  for(j in 1:length(other_vars$mod2)){
+    k = other_vars$mstats2$modid[j]
+    res = results[[k]]
+    i = other_vars$mod2[j]
+    i.res = paste(i,".res",sep="")
+    fun = get(i)
+    fun.res = get(i.res)
+    
+    # generate bootstrap uncertainties and prediction/confidence bounds
+    bsres = boot(other_vars$mod2[j],other_vars$yy, other_vars$temp,
+                 other_vars$t,
+                 fun,fun.res,res,
+                 other_vars$fit,
+                 other_vars$lower_shelf,
+                 other_vars$upper_shelf,
+                 other_vars$uus,
+                 other_vars$laa,
+                 other_vars$lbb,
+                 other_vars$nsim)
+    
+    
+    
+    bout[[i]] = compute_boot_CIs(other_vars$mod2[j],
+                                 other_vars$yy,
+                                 other_vars$temp,
+                                 other_vars$t,
+                                 fun,
+                                 res,
+                                 other_vars$fit,
+                                 other_vars$lower_shelf,
+                                 other_vars$upper_shelf,
+                                 bsres[[4]],
+                                 1 - other_vars$conf_level)
+
+  }
+  
+  mod_name = names(bout)
+  nrows_each = nrow(bout[[1]])
+  bout = bind_rows(bout)
+  bout$model = rep(mod_name,each=nrows_each)
+  return(bout)
+
 }
 
 compute_boot_CIs <- function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,FF,alpha){

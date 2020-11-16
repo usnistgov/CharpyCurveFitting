@@ -114,7 +114,7 @@ plotFitsServer <- function(id,computedResults,boots) {
           theme(plot.title = element_text(hjust = 0.5))
         
         if(input$show_CIs == 'Yes') {
-          boot_data = boots()
+          boot_data = computedResults()$boots
           boot_data = boot_data[boot_data$model %in% input$fits_to_show,]
           p = p + geom_ribbon(data=boot_data, aes(x=x, y=f, ymin=lwr.conf, ymax=upr.conf, fill=model), 
                               alpha=0.1, linetype=0)
@@ -127,7 +127,6 @@ plotFitsServer <- function(id,computedResults,boots) {
     }
   )
 }
-
 
 plotResidsUI <- function(id) {
   ns = NS(id)

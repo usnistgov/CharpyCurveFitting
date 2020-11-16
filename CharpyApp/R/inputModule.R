@@ -270,7 +270,11 @@ inputServer <- function(id) {
                           mod2 = mod2,
                           conf_level = conf_level)
         
-        return(list(mstats=mstats,results=results,other_vars=other_vars))
+        computedResults = list(mstats=mstats,results=results,other_vars=other_vars)
+        
+        computedResults$boots = compute_boot(computedResults)
+        
+        return(computedResults)
         
       })
       

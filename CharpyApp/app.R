@@ -32,9 +32,7 @@ server <- function(input, output, session) {
 
     computedResults <- inputServer('start')
     
-    boots <- compute_boot('placeholder',computedResults)
-    
-    plotFitsServer('fits_and_metrics',computedResults,boots)
+    plotFitsServer('fits_and_metrics',computedResults)
     
     plotResidsServer('resids',computedResults)
     

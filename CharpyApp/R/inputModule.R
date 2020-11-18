@@ -10,7 +10,7 @@ inputUI <- function(id) {
     sliderInput(ns('conf_level'),'Confidence Level for Plots',
                 min=.80,max=.99,value=.95,step=.01),
     hr(),
-    selectInput(ns('response_type'),"Repsonse Type",
+    selectInput(ns('response_type'),"Response Type",
                 choices = c('KV'=1,'LE'=2,'SFA'=3)),
     hr(),
     h4("Select Models to Fit"),

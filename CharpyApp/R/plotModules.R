@@ -206,7 +206,9 @@ plotResidsServer <- function(id,computedResults) {
           geom_point() +
           geom_hline(yintercept=0) +
           ggtitle(paste(yvar_name,': Residual Plot',sep='')) +
-          theme(plot.title = element_text(hjust = 0.5))
+          theme(plot.title = element_text(hjust = 0.5)) +
+          ylab("Residual") +
+          xlab("Temperature")
         
         p
         

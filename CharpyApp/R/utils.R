@@ -6,6 +6,7 @@ compute_boot <- function(computedResults) {
   
   # generate bootstrap uncertainties and prediction/confidence bounds
   bout = list()
+  coef_ints = list()
   
   withProgress(message = "Running Bootstrap Iterations", value = 0, {
   
@@ -13,6 +14,7 @@ compute_boot <- function(computedResults) {
       k = other_vars$mstats2$modid[j]
       res = results[[k]]
       i = other_vars$mod2[j]
+      model_name = i
       i.res = paste(i,".res",sep="")
       fun = get(i)
       fun.res = get(i.res)
@@ -29,19 +31,22 @@ compute_boot <- function(computedResults) {
                    other_vars$lbb,
                    other_vars$nsim)
       
+      # runs bootstrap and computes prediction CIs
+      bout[[model_name]] = compute_boot_CIs(other_vars$mod2[j],
+                                            other_vars$yy,
+                                            other_vars$temp,
+                                            other_vars$t,
+                                            fun,
+                                            res,
+                                            other_vars$fit,
+                                            other_vars$lower_shelf,
+                                            other_vars$upper_shelf,
+                                            bsres$FF,
+                                            1 - other_vars$conf_level)
       
-      
-      bout[[i]] = compute_boot_CIs(other_vars$mod2[j],
-                                   other_vars$yy,
-                                   other_vars$temp,
-                                   other_vars$t,
-                                   fun,
-                                   res,
-                                   other_vars$fit,
-                                   other_vars$lower_shelf,
-                                   other_vars$upper_shelf,
-                                   bsres[[4]],
-                                   1 - other_vars$conf_level)
+      # compute coefficient CIs
+      coef_ints[[model_name]] = compute_boot_coefs(bsres$BBeta,
+                                                   other_vars)
       
       incProgress(1/length(other_vars$mod2), detail = paste("Model",j,"of",length(other_vars$mod2)))
   
@@ -53,7 +58,8 @@ compute_boot <- function(computedResults) {
   nrows_each = nrow(bout[[1]])
   bout = bind_rows(bout)
   bout$model = rep(mod_name,each=nrows_each)
-  return(bout)
+  
+  return(list('bout'=bout,'coef_ints'=coef_ints))
 
 }
 
@@ -96,3 +102,19 @@ compute_boot_CIs <- function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,
   return(df.mc)
 }
 
+compute_boot_coefs <- function(bbeta,other_vars) {
+  
+  SEs = apply(bbeta,2,function(x) sqrt(var(x)))
+  ests = apply(bbeta,2,mean)
+  
+  nn = length(other_vars$temp)
+  npar = length(SEs)
+  dof = nn - npar
+  alpha = 1 - other_vars$conf_level
+  
+  lowers = ests - qt(1 - alpha/2,dof)*SEs/sqrt(nn)
+  uppers = ests + qt(1 - alpha/2,dof)*SEs/sqrt(nn)
+  
+  return(data.frame(estimate = ests, lower = lowers, upper = uppers))
+  
+}

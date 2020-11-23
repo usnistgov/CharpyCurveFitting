@@ -17,7 +17,7 @@ plotFitsUI <- function(id){
   )
 }
 
-plotFitsServer <- function(id,computedResults,boots) {
+plotFitsServer <- function(id,computedResults) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -214,6 +214,55 @@ plotResidsServer <- function(id,computedResults) {
         
       })
       
+    }
+  )
+}
+
+plotCoefsTableUI <- function(id) {
+  ns = NS(id)
+  
+  tagList(
+    br(),
+    DT::dataTableOutput(ns('coefs_table')),
+    br(),
+    uiOutput(ns('which_model_ui'))
+  )
+}
+
+plotCoefsTableServer <- function(id,computedResults) {
+  moduleServer(
+    id,
+    function(input,output,session) {
+      
+      output$which_model_ui <- renderUI({
+        if(is.null(computedResults()$coef_ints)) {
+          return(NULL)
+        }
+        ns <- session$ns
+        selectInput(ns('which_model'),"Model",choice=names(computedResults()$coef_ints))
+      })
+      
+      output$coefs_table <- DT::renderDataTable({
+        req(input$which_model)
+        if(is.null(computedResults()$coef_ints)) {
+          return(NULL)
+        }
+        
+        # get coefficient names
+        if (input$which_model %in% c("ht","aht","abur","koh","akoh")){
+          params = c(names(computedResults()$other_vars$start[[input$which_model]]),'sigma')
+        } else if (input$which_model %in% c("htf","ahtf","aburf","kohf","akohf")){
+          params = c(names(computedResults()$other_vars$start[[input$which_model]]),'lshelf','ushelf','sigma')
+        } else {
+          params = c(names(computedResults()$other_vars$start[[input$which_model]]),'ushelf','sigma')
+        }
+        
+        
+        outdf = data.frame(params = params)
+        outdf = cbind(outdf,round(computedResults()$coef_ints[[input$which_model]],3))
+        outdf
+        
+      }, options = list(searching=FALSE))
     }
   )
 }

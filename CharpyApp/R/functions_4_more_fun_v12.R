@@ -852,10 +852,10 @@ boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
   
   BBeta = BBeta[!is.na(BBeta[,1]),]
   nbeta = length(BBeta[,1])
-  vcvbeta = cov(BBeta[,1:(ncols-1)])
-  sebeta = sqrt(diag(vcvbeta))
+  #vcvbeta = cov(BBeta[,1:(ncols-1)])
+  #sebeta = sqrt(diag(vcvbeta))
   
-  return(list('BBeta'=BBeta,'nbeta'=nbeta,'vcvbeta'=vcvbeta, 'FF'=FF))
+  return(list('BBeta'=BBeta,'nbeta'=nbeta,'FF'=FF))
 } ### end of boot
 
 

@@ -268,11 +268,16 @@ inputServer <- function(id) {
                           nsim = nsim,
                           mstats2 = mstats2,
                           mod2 = mod2,
-                          conf_level = conf_level)
+                          conf_level = conf_level,
+                          start = start)
         
         computedResults = list(mstats=mstats,results=results,other_vars=other_vars)
         
-        computedResults$boots = compute_boot(computedResults)
+        
+        boots_res = compute_boot(computedResults)
+        
+        computedResults$boots = boots_res$bout
+        computedResults$coef_ints = boots_res$coef_ints
         
         return(computedResults)
         

@@ -21,13 +21,14 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
         mainPanel(
             tabsetPanel(
                 tabPanel('Model Fits', plotFitsUI('fits_and_metrics')),
-                tabPanel('Residual Plots', plotResidsUI('resids'))
+                tabPanel('Other Plots', 
+                         plotResidsUI('resids'),
+                         plotCoefsTableUI('coef_table'))
             )
         )
     )
 ))
 
-# Define server logic required to draw a histogram
 server <- function(input, output, session) {
 
     computedResults <- inputServer('start')
@@ -36,7 +37,8 @@ server <- function(input, output, session) {
     
     plotResidsServer('resids',computedResults)
     
+    plotCoefsTableServer('coef_table',computedResults)
+    
 }
 
-# Run the application 
 shinyApp(ui = ui, server = server)

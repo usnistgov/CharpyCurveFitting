@@ -312,7 +312,7 @@ plot.mods = function(yy,temp,mod,results,tt,dfmod,colorz,lower_shelf,upper_shelf
 #############################################
 # residual plots - best four plots - use this
 # use nls function to generate residuals and standardized residuals 
-nlsres = function(yy,temp,mod,res,fun,dfmod,lower_shelf,upper_shelf,fit){
+nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
 
   beta = coef(res)
   nn = length(temp)
@@ -355,7 +355,7 @@ nlsres = function(yy,temp,mod,res,fun,dfmod,lower_shelf,upper_shelf,fit){
   qqline(stres, col="red", lwd=2)
 
 # main title
-  mtitle = paste(main.title,": ", dfmod[dfmod$ID==mod,3], sep="")
+  mtitle = mod
   mtext(mtitle, outer = TRUE)
 
   par(mfrow=c(1,1))

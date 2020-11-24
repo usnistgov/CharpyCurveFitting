@@ -134,7 +134,9 @@ plotResidsUI <- function(id) {
   tagList(
     br(),
     plotOutput(ns('resid_plot')),
-    uiOutput(ns('which_model'))
+    plotOutput(ns('nlsres_plot')),
+    uiOutput(ns('which_model')),
+    hr()
   )
   
 }
@@ -148,6 +150,15 @@ plotResidsServer <- function(id,computedResults) {
         ns <- session$ns
         mods = computedResults()$mstats$mod
         selectInput(ns('which_model'),'Model',choices=mods,selected=mods[1])
+      })
+      
+      output$nlsres_plot = renderPlot({
+        req(input$which_model)
+        other_vars = computedResults()$other_vars
+        model_name = input$which_model
+        res = computedResults()$results[[model_name]]
+        fun = get(model_name)
+        nlsres(other_vars$yy,other_vars$temp,model_name,res,fun,other_vars$lower_shelf,other_vars$upper_shelf,other_vars$fit)
       })
       
       output$resid_plot = renderPlot({
@@ -260,6 +271,7 @@ plotCoefsTableServer <- function(id,computedResults) {
         
         outdf = data.frame(params = params)
         outdf = cbind(outdf,round(computedResults()$coef_ints[[input$which_model]],3))
+        cat(print(pryr::mem_used()))
         outdf
         
       }, options = list(searching=FALSE))

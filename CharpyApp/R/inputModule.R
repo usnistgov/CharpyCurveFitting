@@ -39,7 +39,7 @@ inputUI <- function(id) {
                                      'Upper shelf fixed (aburuf)'='usf'))
     },ns=ns),
     
-    checkboxInput(ns('koh'),'Kohout (symmetric)'),
+    checkboxInput(ns('koh'),'Arctangent'),
     conditionalPanel(condition = "input.koh == '1'",{
       checkboxGroupInput(ns('koh_opt'),label=NULL,
                          choices = c('Shelves not fixed (koh)'='snf',

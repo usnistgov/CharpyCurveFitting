@@ -7,6 +7,7 @@ compute_boot <- function(computedResults) {
   # generate bootstrap uncertainties and prediction/confidence bounds
   bout = list()
   coef_ints = list()
+  tpout = list()
   
   withProgress(message = "Running Bootstrap Iterations", value = 0, {
   
@@ -47,6 +48,18 @@ compute_boot <- function(computedResults) {
       # compute coefficient CIs
       coef_ints[[model_name]] = compute_boot_coefs(bsres$BBeta,
                                                    other_vars)
+      tpout[[model_name]] = tfun(model_name,
+                                 res,
+                                 other_vars$yval,
+                                 other_vars$lower_shelf,
+                                 other_vars$upper_shelf,
+                                 other_vars$alpha,
+                                 bsres$BBeta,
+                                 other_vars$nsim,
+                                 other_vars$fit,
+                                 other_vars$temp,
+                                 fun,
+                                 other_vars$yy)
       
       incProgress(1/length(other_vars$mod2), detail = paste("Model",j,"of",length(other_vars$mod2)))
   
@@ -59,7 +72,7 @@ compute_boot <- function(computedResults) {
   bout = bind_rows(bout)
   bout$model = rep(mod_name,each=nrows_each)
   
-  return(list('bout'=bout,'coef_ints'=coef_ints))
+  return(list('bout'=bout,'coef_ints'=coef_ints, 'tpout'=tpout))
 
 }
 

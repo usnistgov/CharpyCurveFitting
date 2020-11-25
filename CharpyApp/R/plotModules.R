@@ -13,7 +13,13 @@ plotFitsUI <- function(id){
     br(),
     hr(),
     h3("Fit Metrics",align='center'),
-    DT::dataTableOutput(ns('fit_metrics_table'))
+    DT::dataTableOutput(ns('fit_metrics_table')),
+    br(),
+    hr(),
+    h3("Temperature Estimation",align='center'),
+    DT::dataTableOutput(ns('tpout')),
+    uiOutput(ns('which_model'),align='center')
+    
   )
 }
 
@@ -38,6 +44,12 @@ plotFitsServer <- function(id,computedResults) {
                     selected = 'No')
       })
       
+      output$which_model = renderUI({
+        ns <- session$ns
+        mods = computedResults()$mstats$mod
+        selectInput(ns('which_model'),'Model',choices=mods,selected=mods[1])
+      })
+      
       
       output$fit_metrics_table <- DT::renderDataTable({
         mstats = computedResults()$mstats
@@ -49,6 +61,13 @@ plotFitsServer <- function(id,computedResults) {
         outdf
         
       }, options = list(searching = FALSE))
+      
+      
+      
+      output$tpout <- DT::renderDataTable({
+        req(input$which_model)
+        computedResults()$tpout[[input$which_model]]
+      })
       
       
       output$plot_fits <- renderPlot({
@@ -134,8 +153,9 @@ plotResidsUI <- function(id) {
   tagList(
     br(),
     #plotOutput(ns('resid_plot')),
+    h3("Diagnostic Plots",align='center'),
     plotOutput(ns('nlsres_plot')),
-    uiOutput(ns('which_model')),
+    uiOutput(ns('which_model'),align='center'),
     hr()
   )
   
@@ -234,9 +254,10 @@ plotCoefsTableUI <- function(id) {
   
   tagList(
     br(),
+    h3('Coefficients Table',align='center'),
     DT::dataTableOutput(ns('coefs_table')),
     br(),
-    uiOutput(ns('which_model_ui'))
+    uiOutput(ns('which_model_ui'),align='center')
   )
 }
 

@@ -97,7 +97,7 @@ inputServer <- function(id) {
       
       userInputs <- eventReactive(input$goButton, {
         # format user inputs
-        
+        req(input$datafile)
         start = list()
         dataset = read_csv(input$datafile$datapath)
 
@@ -269,15 +269,16 @@ inputServer <- function(id) {
                           mstats2 = mstats2,
                           mod2 = mod2,
                           conf_level = conf_level,
+                          alpha = 1 - conf_level,
                           start = start)
         
         computedResults = list(mstats=mstats,results=results,other_vars=other_vars)
-        
         
         boots_res = compute_boot(computedResults)
         
         computedResults$boots = boots_res$bout
         computedResults$coef_ints = boots_res$coef_ints
+        computedResults$tpout = boots_res$tpout
         
         return(computedResults)
         

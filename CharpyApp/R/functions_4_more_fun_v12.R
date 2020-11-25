@@ -323,16 +323,25 @@ nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
 
 # generate standardized residuals from nls fit (Raizoshams, 2009)
 # https://stackoverflow.com/questions/39167204/in-r-how-does-one-extract-the-hat-projection-influence-matrix-or-values-from-an
-  H = hat(mod,res,temp,lower_shelf,upper_shelf)
-  rmse = sqrt( sum(resid^2) / (length(yy) - npar) ) 
-  stres = resid / (rmse*sqrt(1-diag(H)))
+  H = try(hat(mod,res,temp,lower_shelf,upper_shelf),silent=FALSE)
+  Hlog = is.matrix(H)
+  if(Hlog == FALSE){
+    Hflag = TRUE
+  } else if(any(is.nan(H))==TRUE){
+    Hflag = TRUE
+  } else {
+    Hflag = FALSE
+    rmse = sqrt( sum(resid^2) / (length(yy) - npar) ) 
+    stres = resid / (rmse*sqrt(1-diag(H)))
+  }
+
 
 # Shapiro-Wilk test of normality
   stest = shapiro.test(resid)
   slab = paste("Shapiro-Wilk Test: W = ", round(stest$statistic,2), " p = ", 
                round(stest$p.value,2), sep="")
 
-# generate residual plot
+# generate panel
   par(mfrow=c(2,2), cex=0.8, mgp=c(1.75, 0.75, 0), cex.main=0.9,
       mar=c(4, 3, 2, 2), oma = c(0, 0, 2, 0))
 
@@ -342,17 +351,26 @@ nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
   abline(h=0)
 
 # panel #2
-  plot(temp, stres, main="Standardized Residuals", col="blue",
-       ylab="Standardized Residual", xlab="Temperature, C")
-  abline(h=c(-3,0,3))
+  if(!Hflag) {
+    plot(temp, stres, main="Standardized Residuals", col="blue",
+         ylab="Standardized Residual", xlab="Temperature, C")
+    abline(h=c(-3,0,3))
+    
+  } else {
+    plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+    text(x = 0.5, y = 0.5, paste("Hessian not invertible. Standard errors\n",
+                                 "cannot be estimated."), 
+         cex = 1.6, col = "black")
+  }
+
 
 # panel #3
   plot(resid[1:nn-1], resid[2:nn], ylab="Residual[i+1]", xlab="Residual[i]",
        main="Lag Plot", col="red")
 
 # panel #4
-  qqnorm(stres, col="blue", sub=slab)
-  qqline(stres, col="red", lwd=2)
+  qqnorm(resid, col="blue", sub=slab)
+  qqline(resid, col="red", lwd=2)
 
 # main title
   mtitle = mod

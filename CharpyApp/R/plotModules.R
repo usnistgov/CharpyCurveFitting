@@ -133,7 +133,7 @@ plotResidsUI <- function(id) {
   
   tagList(
     br(),
-    plotOutput(ns('resid_plot')),
+    #plotOutput(ns('resid_plot')),
     plotOutput(ns('nlsres_plot')),
     uiOutput(ns('which_model')),
     hr()

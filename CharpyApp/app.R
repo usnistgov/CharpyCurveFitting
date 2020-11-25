@@ -3,6 +3,7 @@ library(shinythemes)
 library(tidyverse)
 library(minpack.lm)
 library(ggplot2)
+library(pracma)
 
 source('R/inputModule.R')
 source('R/plotModules.R')

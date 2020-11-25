@@ -559,194 +559,194 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
       names(mvs) = c("c","t0","lse","use")
       L1 = (xx[i] - mvec[3]) / (mvec[4] - xx[i] )
       tt[i] = ifelse(L1 > 0, mvec[2] + (mvec[1]/2)*log(L1), NA) # predicted temp
-  
+      
       L2 = (xsim - mvs$lse) / (mvs$use - xsim)
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = mvs$t0 + (mvs$c/2)*L2           # temp from bootstraped parameters
-  
+      
     } else if (mod=="htf") {
       names(mvs) = c("c","t0","lse","use")
       L1 = (xx[i] - lower_shelf) / (upper_shelf - xx[i])
       tt[i] = ifelse(L1 > 0, mvec[2] + (mvec[1]/2)*log(L1), NA) # predicted temp
-  
+      
       L2 = (xsim - mvs$lse) / (mvs$use - xsim)
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = mvs$t0 + (mvs$c/2)*L2          # temp from bootstrapped parameters
-  
+      
     } else if (mod=="htuf") {
       names(mvs) = c("c","t0","lse","use")
       L1 = (xx[i] - mvec[3]) / (upper_shelf - xx[i])
       tt[i] = ifelse(L1 > 0, mvec[2] + (mvec[1]/2)*log(L1), NA) # predicted temp
-  
+      
       L2 = (xsim - mvs$lse) / (mvs$use - xsim)
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = mvs$t0 + (mvs$c/2)*L2          # temp from bootstrapped parameters
-  
+      
     } else if (mod=="aht") {
       names(mvs) = c("c","t0","d","lse","use")
       L1 = (xx[i] - mvec[4]) / (mvec[5] - xx[i])
       tt[i] = ifelse(L1 > 0, (mvec[2] + mvec[1]*log(L1)/2) / 
-              (1 - mvec[3]*log(L1)/2), NA)               # predicted temp
-  
+                       (1 - mvec[3]*log(L1)/2), NA)               # predicted temp
+      
       L2 = (xsim - mvs$lse) / (mvs$use - xsim)
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = (mvs$t0 + mvs$c*L2/2) / (1 - mvs$d*L2/2)   # temp from bootstrapped parameters
-  
+      
     } else if (mod=="ahtf") {
       names(mvs) = c("c","t0","d","lse","use")
       L1 = (xx[i] - lower_shelf) / (upper_shelf - xx[i])
       tt[i] = ifelse(L1 > 0, (mvec[2] + mvec[1]*log(L1)/2) / 
-              (1 - mvec[3]*log(L1)/2), NA)                  # predicted temp
-  
+                       (1 - mvec[3]*log(L1)/2), NA)                  # predicted temp
+      
       L2 = (xsim - mvs$lse) / (mvs$use - xsim)
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = (mvs$t0 + mvs$c*L2/2) /  (1 - mvs$d*L2/2)     # temp from bootstrapped parameters
-  
+      
     } else if (mod=="ahtuf") {
       names(mvs) = c("c","t0","d","lse","use")
       L1 = (xx[i] - mvec[4]) / (upper_shelf - xx[i])
       tt[i] = ifelse(L1 > 0, (mvec[2] + mvec[1]*log(L1)/2) / 
-              (1 - mvec[3]*log(L1)/2), NA)                  # predicted temp
-  
+                       (1 - mvec[3]*log(L1)/2), NA)                  # predicted temp
+      
       L2 = (xsim - mvs$lse) / (mvs$use - xsim)
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = (mvs$t0 + mvs$c*L2/2) / (1 - mvs$d*L2/2)      # temp from bootstrapped parameters
-  
+      
     } else if (mod=="abur") {
       names(mvs) = c("k","t0","m","lse","use")
       L1 = ((xx[i] - mvec[4])/(mvec[5] - mvec[4]))^(-1/mvec[3]) - 1
       tt[i] = ifelse(L1 > 0, mvec[2] - (1/mvec[1])*log(L1), NA) # predicted temp
-  
+      
       L2 = ((xsim - mvs$lse)/(mvs$use - mvs$lse))^(-1/mvs$m) - 1
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = mvs$t0 - (1/mvs$k)*L2          # temp from bootstrapped parameters
-  
+      
     } else if (mod=="aburf") {
       names(mvs) = c("k","t0","m","lse","use")
       L1 = ((xx[i] - lower_shelf)/(upper_shelf - lower_shelf))^(-1/mvec[3]) - 1
       tt[i] = ifelse(L1 > 0, mvec[2] - (1/mvec[1])*log(L1), NA)      # predicted temp
-  
+      
       L2 = ((xsim - mvs$lse)/(mvs$use - mvs$lse))^(-1/mvs$m) - 1
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = mvs$t0 - (1/mvs$k)*L2               # temp from bootstrapped parameters
-   
+      
     } else if (mod=="aburuf") {
       names(mvs) = c("k","t0","m","lse","use")
       L1 = ((xx[i] - mvec[4])/(upper_shelf - mvec[4]))^(-1/mvec[3]) - 1 
       tt[i] = ifelse(L1 > 0, mvec[2] - (1/mvec[1])*log(L1), NA)     # predicted temp
-  
+      
       L2 = ((xsim - mvs$lse) /(mvs$use - mvs$lse))^(-1/mvs$m) - 1
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = mvs$t0  - (1/mvs$k)*L2             # temp from bootstrapped parameters
-    
-     } else if (mod=="koh") {
-       names(mvs) = c("c","DBTT","lse","use")
-       tt[i] = mvec[2] + (2*mvec[1]/pi)*tan((0.5*pi/(mvec[4]-mvec[3]))*
-               (2*xx[i] - (mvec[3]+mvec[4])))                      # predicted temp
-  
-       ttsim = mvs$DBTT + 
-               (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
-               (2*xsim - (mvs$use+mvs$lse)))     # temp from bootstrapped parameters
-  
-     } else if (mod=="kohf") {
-       names(mvs) = c("c","DBTT","lse","use")
-       tt[i] = mvec[2] + 
-              (2*mvec[1]/pi)*tan((0.5*pi/(upper_shelf-lower_shelf))*
-              (2*xx[i] - (upper_shelf+lower_shelf)))                 # predicted temp
-  
-       ttsim = mvs$DBTT + 
-          (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
-          (2*xsim - (mvs$use+mvs$lse)))           # temp from bootstrapped parameters
-  
-     } else if (mod=="kohuf") {
-       names(mvs) = c("c","DBTT","lse","use")
-       tt[i] = mvec[2] + 
-               (2*mvec[1]/pi)*tan((0.5*pi/(upper_shelf-mvec[3]))*
-               (2*xx[i] - (upper_shelf+mvec[3])))                    # predicted temp
-  
-       ttsim = mvs$DBTT + 
-               (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
-               (2*xsim - (mvs$use+mvs$lse)))      # temp from bootstrapped parameters
-  
-     } else if (mod=="akoh") {
-       names(mvs) = c("c","t0","p","lse","use")
-       L1a = (1+mvec[3])*(xx[i]-mvec[4])/(mvec[5]-mvec[4])
-       L1a = log( ifelse(L1a > 0, L1a, NA) )
-       L1b = (mvec[5]-xx[i])*(1+mvec[3])/(mvec[3]*(mvec[5]-mvec[4]))
-       L1b = log( ifelse(L1b > 0, L1b, NA) )
-       if (xx[i] <= mvec[2]) {     
-         tt[i] = mvec[2] + (2*mvec[1]/(1+mvec[3]))*L1a
-       } else if (xx[i] > mvec[2]) {
-         tt[i] = mvec[2] - (2*mvec[1]*mvec[3]/(1+mvec[3]))*L1b   # predicted temp
-       }
-  
-       ttsim = rep(NA,nbs)
-       for (j in 1:nbs){
-         if(xsim[j] <= mvs$t0[j]){
-            L2a = (1+mvs$p[j])*(xsim[j]-mvs$lse[j])/(mvs$use[j]-mvs$lse[j])
-            L2a = log( ifelse(L2a > 0, L2a, NA) )
-            tts = mvs$t0[j] + (2*mvs$c[j]/(1+mvs$p[j]))*L2a
-         } else { 
-            L2b = (mvs$use[j]-xsim[j])*(1+mvs$p[j])/(mvs$p[j]*(mvs$use[j]-mvs$lse[j]))
-            L2b = log( ifelse(L2b > 0, L2b, NA) )
-            tts = mvs$t0[j] - (2*mvs$c[j]*mvs$p[j]/(1+mvs$p[j]))*L2b
-         } # end of if
-            ttsim[j] = tts                     # temp from bootstrapped parameters
-         } # end of for
-  
-     } else if (mod=="akohf") {
-       names(mvs) = c("c","t0","p","lse","use")
-       L1a = (1+mvec[3])*(xx[i]-lower_shelf)/(upper_shelf-lower_shelf)  
-       L1a = log( ifelse(L1a > 0, L1a, NA) ) 
-       L1b = (upper_shelf-xx[i])*(1+mvec[3])/(mvec[3]*(upper_shelf-lower_shelf))
-       L1b = log( ifelse(L1b > 0, L1b, NA) )
-       if (xx[i] <= mvec[2]) {  
-         tt[i] = mvec[2] + (2*mvec[1]/(1+mvec[3]))*L1a
-       } else if(xx[i] > mvec[2]) {
-         tt[i] = mvec[2] - (2*mvec[1]*mvec[3]/(1+mvec[3]))*L1b     # predicted temp
-       }
-  
-       ttsim = rep(NA, nbs)
-       for(j in 1:nbs){
-          if (xsim[j] <= mvs$t0[j]){
-              L2a = (1+mvs$p[j])*(xsim[j]-mvs$lse[j])/(mvs$use[j]-mvs$lse[j])
-              L2a = log( ifelse(L2a > 0, L2a, NA) )
-              tts = mvs$t0[j] + (2*mvs$c[j]/(1+mvs$p[k]))*L2a
-           } else if(xsim[j] > mvs$t0[j]){
-             L2b = (mvs$use[j]-xsim[j])*(1+mvs$p[j])/(mvs$p[j]*(mvs$use[j]-mvs$lse[j]))
-             L2b = log( ifelse(L2b > 0, L2b, NA) ) 
-             tts = mvs$t0[j] - (2*mvs$c[j]*mvs$p[j]/(1+mvs$p[j]))*L2b
-           } # end of if
-           ttsim[j] = tts                       # temp from bootstrapped paramerers
-         } # end of for
-  
-     } else if (mod=="akohuf") {
-       names(mvs) = c("c","t0","p","lse","use")
-       if (xx[i] <= mvec[2]) {
-         L1a = (1+mvec[3])*(xx[i]-mvec[4])/(upper_shelf-mvec[4]) 
-         L1a = log( ifelse(L1a > 0, L1a, NA) )   
-         tt[i] = mvec[2] + (2*mvec[1]/(1+mvec[3]))*L1a
-       } else if (xx[i] > mvec[2]) {
-         L1b = (upper_shelf-xx[i])*(1+mvec[3])/(mvec[3]*(upper_shelf-mvec[4]))
-         L1b = log( ifelse(L1b > 0, L1b, NA) )
-         tt[i] = mvec[2] - (2*mvec[1]*mvec[3]/(1+mvec[3]))*L1b      # predicted temp
-       }
-  
-         ttsim = rep(NA, nbs)
-         for(j in 1:nbs){
-           if (xsim[j] <= mvs$t0[j]){
-              L2a = (1+mvs$p[j])*(xsim[j]-mvs$lse[j])/(mvs$use[j]-mvs$lse[j])
-              L2a = log( ifelse(L2a > 0, L2a, NA) )            
-              tts = mvs$t0[j] + (2*mvs$c[j]/(1+mvs$p[k]))*L2a
-           } else if(xsim[j] > mvs$t0[j]){
-              L2b = (mvs$use[j]-xsim[j])*(1+mvs$p[j])/(mvs$p[j]*(mvs$use[j]-mvs$lse[j])) 
-              L2b = log( ifelse(L2b > 0, L2b, NA) )
-              tts = mvs$t0[j] - (2*mvs$c[j]*mvs$p[j]/(1+mvs$p[j]))*L2b
-           } # end of if
-           ttsim[j] = tts                         # temp from bootstrapped parameters
-         } # end of for
-  
-     } # end of model if
+      
+    } else if (mod=="koh") {
+      names(mvs) = c("c","DBTT","lse","use")
+      tt[i] = mvec[2] + (2*mvec[1]/pi)*tan((0.5*pi/(mvec[4]-mvec[3]))*
+                                             (2*xx[i] - (mvec[3]+mvec[4])))                      # predicted temp
+      
+      ttsim = mvs$DBTT + 
+        (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
+                           (2*xsim - (mvs$use+mvs$lse)))     # temp from bootstrapped parameters
+      
+    } else if (mod=="kohf") {
+      names(mvs) = c("c","DBTT","lse","use")
+      tt[i] = mvec[2] + 
+        (2*mvec[1]/pi)*tan((0.5*pi/(upper_shelf-lower_shelf))*
+                             (2*xx[i] - (upper_shelf+lower_shelf)))                 # predicted temp
+      
+      ttsim = mvs$DBTT + 
+        (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
+                           (2*xsim - (mvs$use+mvs$lse)))           # temp from bootstrapped parameters
+      
+    } else if (mod=="kohuf") {
+      names(mvs) = c("c","DBTT","lse","use")
+      tt[i] = mvec[2] + 
+        (2*mvec[1]/pi)*tan((0.5*pi/(upper_shelf-mvec[3]))*
+                             (2*xx[i] - (upper_shelf+mvec[3])))                    # predicted temp
+      
+      ttsim = mvs$DBTT + 
+        (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
+                           (2*xsim - (mvs$use+mvs$lse)))      # temp from bootstrapped parameters
+      
+    } else if (mod=="akoh") {
+      names(mvs) = c("c","t0","p","lse","use")
+      L1a = (1+mvec[3])*(xx[i]-mvec[4])/(mvec[5]-mvec[4])
+      L1a = log( ifelse(L1a > 0, L1a, NA) )
+      L1b = (mvec[5]-xx[i])*(1+mvec[3])/(mvec[3]*(mvec[5]-mvec[4]))
+      L1b = log( ifelse(L1b > 0, L1b, NA) )
+      if (xx[i] <= mvec[2]) {     
+        tt[i] = mvec[2] + (2*mvec[1]/(1+mvec[3]))*L1a
+      } else if (xx[i] > mvec[2]) {
+        tt[i] = mvec[2] - (2*mvec[1]*mvec[3]/(1+mvec[3]))*L1b   # predicted temp
+      }
+      
+      ttsim = rep(NA,nbs)
+      for (j in 1:nbs){
+        if(xsim[j] <= mvs$t0[j]){
+          L2a = (1+mvs$p[j])*(xsim[j]-mvs$lse[j])/(mvs$use[j]-mvs$lse[j])
+          L2a = log( ifelse(L2a > 0, L2a, NA) )
+          tts = mvs$t0[j] + (2*mvs$c[j]/(1+mvs$p[j]))*L2a
+        } else { 
+          L2b = (mvs$use[j]-xsim[j])*(1+mvs$p[j])/(mvs$p[j]*(mvs$use[j]-mvs$lse[j]))
+          L2b = log( ifelse(L2b > 0, L2b, NA) )
+          tts = mvs$t0[j] - (2*mvs$c[j]*mvs$p[j]/(1+mvs$p[j]))*L2b
+        } # end of if
+        ttsim[j] = tts                     # temp from bootstrapped parameters
+      } # end of for
+      
+    } else if (mod=="akohf") {
+      names(mvs) = c("c","t0","p","lse","use")
+      L1a = (1+mvec[3])*(xx[i]-lower_shelf)/(upper_shelf-lower_shelf)  
+      L1a = log( ifelse(L1a > 0, L1a, NA) ) 
+      L1b = (upper_shelf-xx[i])*(1+mvec[3])/(mvec[3]*(upper_shelf-lower_shelf))
+      L1b = log( ifelse(L1b > 0, L1b, NA) )
+      if (xx[i] <= mvec[2]) {  
+        tt[i] = mvec[2] + (2*mvec[1]/(1+mvec[3]))*L1a
+      } else if(xx[i] > mvec[2]) {
+        tt[i] = mvec[2] - (2*mvec[1]*mvec[3]/(1+mvec[3]))*L1b     # predicted temp
+      }
+      
+      ttsim = rep(NA, nbs)
+      for(j in 1:nbs){
+        if (xsim[j] <= mvs$t0[j]){
+          L2a = (1+mvs$p[j])*(xsim[j]-mvs$lse[j])/(mvs$use[j]-mvs$lse[j])
+          L2a = log( ifelse(L2a > 0, L2a, NA) )
+          tts = mvs$t0[j] + (2*mvs$c[j]/(1+mvs$p[k]))*L2a
+        } else if(xsim[j] > mvs$t0[j]){
+          L2b = (mvs$use[j]-xsim[j])*(1+mvs$p[j])/(mvs$p[j]*(mvs$use[j]-mvs$lse[j]))
+          L2b = log( ifelse(L2b > 0, L2b, NA) ) 
+          tts = mvs$t0[j] - (2*mvs$c[j]*mvs$p[j]/(1+mvs$p[j]))*L2b
+        } # end of if
+        ttsim[j] = tts                       # temp from bootstrapped paramerers
+      } # end of for
+      
+    } else if (mod=="akohuf") {
+      names(mvs) = c("c","t0","p","lse","use")
+      if (xx[i] <= mvec[2]) {
+        L1a = (1+mvec[3])*(xx[i]-mvec[4])/(upper_shelf-mvec[4]) 
+        L1a = log( ifelse(L1a > 0, L1a, NA) )   
+        tt[i] = mvec[2] + (2*mvec[1]/(1+mvec[3]))*L1a
+      } else if (xx[i] > mvec[2]) {
+        L1b = (upper_shelf-xx[i])*(1+mvec[3])/(mvec[3]*(upper_shelf-mvec[4]))
+        L1b = log( ifelse(L1b > 0, L1b, NA) )
+        tt[i] = mvec[2] - (2*mvec[1]*mvec[3]/(1+mvec[3]))*L1b      # predicted temp
+      }
+      
+      ttsim = rep(NA, nbs)
+      for(j in 1:nbs){
+        if (xsim[j] <= mvs$t0[j]){
+          L2a = (1+mvs$p[j])*(xsim[j]-mvs$lse[j])/(mvs$use[j]-mvs$lse[j])
+          L2a = log( ifelse(L2a > 0, L2a, NA) )            
+          tts = mvs$t0[j] + (2*mvs$c[j]/(1+mvs$p[k]))*L2a
+        } else if(xsim[j] > mvs$t0[j]){
+          L2b = (mvs$use[j]-xsim[j])*(1+mvs$p[j])/(mvs$p[j]*(mvs$use[j]-mvs$lse[j])) 
+          L2b = log( ifelse(L2b > 0, L2b, NA) )
+          tts = mvs$t0[j] - (2*mvs$c[j]*mvs$p[j]/(1+mvs$p[j]))*L2b
+        } # end of if
+        ttsim[j] = tts                         # temp from bootstrapped parameters
+      } # end of for
+      
+    } # end of model if
   
      # make sure temp from bootstrapped parameters are within range of temperature data
      # and are not NA before computing standard deviation

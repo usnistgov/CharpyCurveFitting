@@ -711,7 +711,7 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
         if (xsim[j] <= mvs$t0[j]){
           L2a = (1+mvs$p[j])*(xsim[j]-mvs$lse[j])/(mvs$use[j]-mvs$lse[j])
           L2a = log( ifelse(L2a > 0, L2a, NA) )
-          tts = mvs$t0[j] + (2*mvs$c[j]/(1+mvs$p[k]))*L2a
+          tts = mvs$t0[j] + (2*mvs$c[j]/(1+mvs$p[j]))*L2a
         } else if(xsim[j] > mvs$t0[j]){
           L2b = (mvs$use[j]-xsim[j])*(1+mvs$p[j])/(mvs$p[j]*(mvs$use[j]-mvs$lse[j]))
           L2b = log( ifelse(L2b > 0, L2b, NA) ) 

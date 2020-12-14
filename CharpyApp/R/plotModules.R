@@ -30,7 +30,7 @@ plotFitsServer <- function(id,computedResults) {
       output$which_fits_ui <- renderUI({
         ns <- session$ns
         mods = computedResults()$mstats$mod
-        checkboxGroupInput(ns('fits_to_show'),'Fits to Show',choices=mods,selected=mods)
+        checkboxGroupInput(ns('fits_to_show'),'Fits to Show',choices=toupper(mods),selected=toupper(mods))
       })
       
       output$show_CIs_ui <- renderUI({
@@ -55,9 +55,12 @@ plotFitsServer <- function(id,computedResults) {
       }, options = list(searching = FALSE, paging=FALSE))
       
       output$tpout <- DT::renderDataTable({
-        dplyr::bind_rows(computedResults()$tpout)
+        outdf = dplyr::bind_rows(computedResults()$tpout)
+        outdf = cbind(names(computedResults()$tpout),outdf)
+        names(outdf) = c('Model','Ref Value','Temperature Est', 'SE','Lower Cl','Upper Cl')
+        outdf
+        
       }, options = list(searching=FALSE, paging=FALSE))
-      
       
       output$plot_fits <- renderPlot({
         
@@ -70,7 +73,7 @@ plotFitsServer <- function(id,computedResults) {
         #            upper_shelf, lower_shelf
         # could attach the list, but might be sloppy coding
         
-        mod = other_vars$mod[other_vars$mod %in% input$fits_to_show]
+        mod = other_vars$mod[other_vars$mod %in% tolower(input$fits_to_show)]
         temp = other_vars$temp
         yy = other_vars$yy
         nn = other_vars$nn

@@ -4,84 +4,61 @@ inputUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    tags$head(tags$style(HTML(".shiny-input-checkboxgroup {margin-left:15px}"))),
     fileInput(ns('datafile'),'Upload csv file',accept=c('.csv','.txt')),
     hr(),
     sliderInput(ns('conf_level'),'Confidence Level for Plots',
                 min=.80,max=.99,value=.95,step=.01),
     hr(),
     selectInput(ns('response_type'),"Response Type",
-                choices = c('KV'=1,'LE'=2,'SFA'=3)),
+                choices = c('KV (J)'=1,'LE (mm)'=2,'SFA (%)'=3)),
     hr(),
-    h4("Select Models to Fit"),
     
-    checkboxInput(ns('ht'),'Hyperbolic Tangent',FALSE),
-    conditionalPanel(condition = "input.ht == '1'",{
-                     checkboxGroupInput(ns('ht_opt'),label=NULL,
-                         choices = c('Shelves not fixed (ht)'='snf',
-                                     'Both shelves fixed (htf)'='bsf',
-                                     'Upper shelf fixed (htuf)'='usf'))
-    },ns=ns),
+    checkboxGroupInput(ns('which_models'),'Select Regression Models',
+                  choiceNames=c('Hyperbolic Tangent (HT)',
+                                'Asymmetric Hyperbolic Tangent (AHT)',
+                                'Asymmetric Burr (ABUR)',
+                                'Arctangent (ACT)',
+                                'Kohout (KHT)'),
+                  choiceValues=c('ht','aht','abur','koh','akoh')),
     
-    checkboxInput(ns('aht'),'Asymmetric Hyperbolic Tangent'),
-    conditionalPanel(condition = "input.aht == '1'",{
-                     checkboxGroupInput(ns('aht_opt'),label=NULL,
-                         choices = c('Shelves not fixed (aht)'='snf',
-                                     'Both shelves fixed (ahtf)'='bsf',
-                                     'Upper shelf fixed (ahtuf)'='usf'))
-    },ns=ns),
+    selectInput(ns('upper_shelf_option'),
+                'Upper Shelf:',
+                choices=c('Fixed','Random'),
+                selected='Fixed'),
     
-    checkboxInput(ns('abur'),'Asymmetric Burr'),
-    conditionalPanel(condition = "input.abur == '1'",{
-      checkboxGroupInput(ns('abur_opt'),label=NULL,
-                         choices = c('Shelves not fixed (abur)'='snf',
-                                     'Both shelves fixed (aburf)'='bsf',
-                                     'Upper shelf fixed (aburuf)'='usf'))
-    },ns=ns),
+    selectInput(ns('lower_shelf_option'),
+                'Lower Shelf:',
+                choices=c('Fixed','Random'),
+                selected='Fixed'),
     
-    checkboxInput(ns('koh'),'Arctangent'),
-    conditionalPanel(condition = "input.koh == '1'",{
-      checkboxGroupInput(ns('koh_opt'),label=NULL,
-                         choices = c('Shelves not fixed (koh)'='snf',
-                                     'Both shelves fixed (kohf)'='bsf',
-                                     'Upper shelf fixed (kohuf)'='usf'))
-    },ns=ns),
-    
-    checkboxInput(ns('akoh'),'Kohout (asymmetric)'),
-    conditionalPanel(condition = "input.akoh == '1'",{
-      checkboxGroupInput(ns('akoh_opt'),label=NULL,
-                         choices = c('Shelves not fixed (akoh)'='snf',
-                                     'Both shelves fixed (akohf)'='bsf',
-                                     'Upper shelf fixed (akohuf)'='usf'))
-    },ns=ns),
     hr(),
-    h5("Specify upper and lower shelves"),
+    h5("Specify lower and upper shelves"),
     h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
+    numericInput(ns('lower_shelf'),"Lower Shelf",0),
     numericInput(ns('upper_shelf'),"Upper Shelf",1.43),
-    numericInput(ns('lower_shelf'), "Lower Shelf",0),
     hr(),
     sliderInput(ns('nsim'),"Number Bootstrap Iterations per Model",
                 min=50,max=1000,value=50,step=50),
     hr(),
-    conditionalPanel(condition = "input.ht == '1' || input.aht == '1' ", {
+    conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht')", {
       tagList(
         h5('Starting Values for Hyperbolic Tangent Models'),
-        numericInput(ns('c_prov'),'c_prov',50),
-        numericInput(ns('d_prov'),'d_prov',.0001),
-        numericInput(ns('t0_prov'),'t0_prov',10))
+        numericInput(ns('c_prov'),'\u00B0C',50),
+        numericInput(ns('d_prov'),'D',.0001),
+        numericInput(ns('t0_prov'),'DBTT (\u00B0C)',10))
     },ns=ns),
-    conditionalPanel(condition = "input.abur == '1'", {
+    conditionalPanel(condition = "input.which_models.includes('abur')", {
       tagList(
         h5('Starting Values for Burr Models'),
-        numericInput(ns('k_prov'),'k_prov',.04),
-        numericInput(ns('m_prov'),'m_prov',.04))
+        numericInput(ns('k_prov'),'k',.04),
+        numericInput(ns('m_prov'),'m',.04))
     },ns=ns),
-    conditionalPanel(condition = "input.koh == '1' || input.akoh == '1'", {
+    conditionalPanel(condition = "input.which_models.includes('koh') || input.which_models.includes('akoh')", {
       tagList(
         h5('Starting Values for Kohout Models'),
-        numericInput(ns('ck_prov'),'ck_prov',20),
-        numericInput(ns('p_prov'),'p_prov',2),
-        numericInput(ns('dbtt'),'dbtt',-5))
+        numericInput(ns('ck_prov'),'\u00B0C',20),
+        numericInput(ns('p_prov'),'P',2),
+        numericInput(ns('dbtt'),'T0 (\u00B0C)',-5))
     },ns=ns),
     
     actionButton(ns('goButton'),'Go')
@@ -114,65 +91,80 @@ inputServer <- function(id) {
         lower_shelf = as.numeric(input$lower_shelf)
         nsim = as.numeric(input$nsim)
         conf_level = as.numeric(input$conf_level)
-    
         
-        if(input$ht) {
-          if('snf' %in% input$ht_opt) {
+        shelves_in = c(input$lower_shelf_option,input$upper_shelf_option)
+        
+        if(all(shelves_in == c('Fixed','Fixed') )) {
+          shelves = 'bsf'
+        
+        } else if(all(shelves_in == c('Fixed','Random') )) {
+          stop('LSF, USR not supported (yet).')
+          
+        } else if(all(shelves_in == c('Random','Fixed') )) {
+          shelves = 'usf'
+        
+        } else {
+          shelves = 'snf'
+        }
+        
+        
+        if('ht' %in% input$which_models) {
+          if(shelves == 'snf') {
             start$ht    = c(c=c_prov, t0=t0_prov, lse=lower_shelf, use=upper_shelf)
-          }
-          if('bsf' %in% input$ht_opt) {
+          
+          } else if(shelves == 'bsf') {
             start$htf   = c(c=c_prov, t0=t0_prov)
-          }
-          if('usf' %in% input$ht_opt) {
+            
+          } else if(shelves == 'usf') {
             start$htuf  = c(c=c_prov, t0=t0_prov, lse=lower_shelf)
           }
           
         }
         
-        if(input$aht) {
-          if('snf' %in% input$aht_opt) {
+        if('aht' %in% input$which_models) {
+          if(shelves == 'snf') {
             start$aht   = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf, use=upper_shelf)
-          }
-          if('bsf' %in% input$aht_opt) {
+            
+          } else if(shelves == 'bsf') {
             start$ahtf  = c(c=c_prov, t0=t0_prov, d=d_prov)
-          }
-          if('usf' %in% input$aht_opt) {
+          
+          } else if(shelves == 'usf') {
             start$ahtuf = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf)
           }
         }
         
-        if(input$abur) {
-          if('snf' %in% input$abur_opt) {
+        if('abur' %in% input$which_models) {
+          if(shelves == 'snf') {
             start$abur   = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf, use=upper_shelf)
-          }
-          if('bsf' %in% input$abur_opt) {
+            
+          } else if(shelves == 'bsf') {
             start$aburf  = c(k=k_prov, t0=t0_prov, m=m_prov) 
-          }
-          if('usf' %in% input$abur_opt) {
+            
+          } else if(shelves == 'usf') {
             start$aburuf = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf) 
           }
         }
         
-        if(input$koh) {
-          if('snf' %in% input$koh_opt) {
+        if('koh' %in% input$which_models) {
+          if(shelves == 'snf') {
             start$koh   = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf, use=upper_shelf)
-          }
-          if('bsf' %in% input$koh_opt) {
+            
+          } else if(shelves == 'bsf') {
             start$kohf  = c(c=ck_prov, DBTT=t0_prov)
-          }
-          if('usf' %in% input$koh_opt) {
+            
+          } else if(shelves == 'usf') {
             start$kohuf = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf)
           }
         }
         
-        if(input$akoh) {
-          if('snf' %in% input$akob_opt) {
+        if('akoh' %in% input$which_models) {
+          if(shelves == 'snf') {
             start$akoh   = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf, use=upper_shelf )
-          }
-          if('bsf' %in% input$akob_opt) {
+          
+          } else if(shelves == 'bsf') {
             start$akohf  = c(c=ck_prov, t0=dbtt, p=p_prov)
-          }
-          if('usf' %in% input$akob_opt) {
+            
+          } else if(shelves == 'usf') {
             start$akohuf = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf)
           }
         }
@@ -228,6 +220,8 @@ inputServer <- function(id) {
         newt = data.frame(t)
         names(newt) = c("temp")
         
+        #browser()
+        
         # Jolene's code:
         cat('fitting')
         fitres = fits(mod,start,lower_shelf,upper_shelf,yy,temp,fit)
@@ -270,7 +264,8 @@ inputServer <- function(id) {
                           mod2 = mod2,
                           conf_level = conf_level,
                           alpha = 1 - conf_level,
-                          start = start)
+                          start = start,
+                          shelves=shelves)
         
         computedResults = list(mstats=mstats,results=results,other_vars=other_vars)
         

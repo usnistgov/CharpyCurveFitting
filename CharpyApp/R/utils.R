@@ -48,6 +48,7 @@ compute_boot <- function(computedResults) {
       # compute coefficient CIs
       coef_ints[[model_name]] = compute_boot_coefs(bsres$BBeta,
                                                    other_vars)
+      
       tpout[[model_name]] = tfun(model_name,
                                  res,
                                  other_vars$yval,

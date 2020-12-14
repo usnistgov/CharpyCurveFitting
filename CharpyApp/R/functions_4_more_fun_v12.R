@@ -342,8 +342,8 @@ nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
                round(stest$p.value,2), sep="")
 
 # generate panel
-  par(mfrow=c(2,2), cex=0.8, mgp=c(1.75, 0.75, 0), cex.main=0.9,
-      mar=c(4, 3, 2, 2), oma = c(0, 0, 2, 0))
+  par(mfrow=c(2,2), cex=1.2, mgp=c(1.75, 0.75, 0), cex.main=1.2,
+      mar=c(4, 3, 3 ,3), oma = c(1, 1, 1, 1))
 
 # panel #1
   plot(prval, resid, main="Residual Plot", col="red",

@@ -16,9 +16,8 @@ plotFitsUI <- function(id){
     DT::dataTableOutput(ns('fit_metrics_table')),
     br(),
     hr(),
-    h3("Temperature Estimation",align='center'),
-    DT::dataTableOutput(ns('tpout')),
-    uiOutput(ns('which_model'),align='center')
+    h3("Characteristic Temperatures",align='center'),
+    DT::dataTableOutput(ns('tpout'))
     
   )
 }
@@ -44,30 +43,20 @@ plotFitsServer <- function(id,computedResults) {
                     selected = 'No')
       })
       
-      output$which_model = renderUI({
-        ns <- session$ns
-        mods = computedResults()$mstats$mod
-        selectInput(ns('which_model'),'Model',choices=mods,selected=mods[1])
-      })
-      
-      
       output$fit_metrics_table <- DT::renderDataTable({
         mstats = computedResults()$mstats
         
         outdf = mstats[,2:6]
         outdf$conv = ifelse(outdf$conv %in% c(1,2,3),'Yes','No')
-        names(outdf) = c('Model','rMSE','AIC','BIC','Converged?')
+        names(outdf) = c('Model','RMSE','AIC','BIC','Converged?')
         
         outdf
         
-      }, options = list(searching = FALSE))
-      
-      
+      }, options = list(searching = FALSE, paging=FALSE))
       
       output$tpout <- DT::renderDataTable({
-        req(input$which_model)
-        computedResults()$tpout[[input$which_model]]
-      })
+        dplyr::bind_rows(computedResults()$tpout)
+      }, options = list(searching=FALSE, paging=FALSE))
       
       
       output$plot_fits <- renderPlot({
@@ -125,16 +114,20 @@ plotFitsServer <- function(id,computedResults) {
         
         yvar_name = c('KV','LE','SFA')[other_vars$fit]
         
+        df_to_plot$model = toupper(df_to_plot$model)
+        
         p = ggplot(data=df_to_plot,aes(x=temp,y=value,col=model)) + 
           geom_line() +
           geom_point(data=original_data,aes(x=temp,y=yy),inherit.aes = FALSE) +
           ylab(yvar_name) +
+          xlab('Temperature (\u00B0C)')+
           ggtitle(paste(yvar_name,'vs.','Temperature')) +
           theme(plot.title = element_text(hjust = 0.5))
         
         if(input$show_CIs == 'Yes') {
           boot_data = computedResults()$boots
-          boot_data = boot_data[boot_data$model %in% input$fits_to_show,]
+          boot_data$model = toupper(boot_data$model)
+          boot_data = boot_data[boot_data$model %in% toupper(input$fits_to_show),]
           p = p + geom_ribbon(data=boot_data, aes(x=x, y=f, ymin=lwr.conf, ymax=upr.conf, fill=model), 
                               alpha=0.1, linetype=0)
         }
@@ -154,7 +147,10 @@ plotResidsUI <- function(id) {
     br(),
     #plotOutput(ns('resid_plot')),
     h3("Diagnostic Plots",align='center'),
-    plotOutput(ns('nlsres_plot')),
+    fluidRow(
+      column(8,offset=2,align='center',plotOutput(ns('nlsres_plot'),height = '550px',width = '750px'))
+    ),
+    
     uiOutput(ns('which_model'),align='center'),
     hr()
   )
@@ -182,6 +178,7 @@ plotResidsServer <- function(id,computedResults) {
       })
       
       output$resid_plot = renderPlot({
+        # this is currently not used, but didn't want to delete
         req(input$which_model)
         
         mstats = computedResults()$mstats
@@ -254,7 +251,7 @@ plotCoefsTableUI <- function(id) {
   
   tagList(
     br(),
-    h3('Coefficients Table',align='center'),
+    h3('Regression Coefficients',align='center'),
     DT::dataTableOutput(ns('coefs_table')),
     br(),
     uiOutput(ns('which_model_ui'),align='center')
@@ -280,22 +277,27 @@ plotCoefsTableServer <- function(id,computedResults) {
           return(NULL)
         }
         
+        
         # get coefficient names
-        if (input$which_model %in% c("ht","aht","abur","koh","akoh")){
-          params = c(names(computedResults()$other_vars$start[[input$which_model]]),'sigma')
-        } else if (input$which_model %in% c("htf","ahtf","aburf","kohf","akohf")){
-          params = c(names(computedResults()$other_vars$start[[input$which_model]]),'lshelf','ushelf','sigma')
-        } else {
-          params = c(names(computedResults()$other_vars$start[[input$which_model]]),'ushelf','sigma')
-        }
+        # if (input$which_model %in% c("ht","aht","abur","koh","akoh")){
+        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'sigma')
+        #   
+        # } else if (input$which_model %in% c("htf","ahtf","aburf","kohf","akohf")){
+        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'Lower shelf','Upper shelf','sigma')
+        #   
+        # } else {
+        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'Upper shelf','sigma')
+        # }
         
-        
+        params = names(computedResults()$other_vars$start[[input$which_model]])
         outdf = data.frame(params = params)
-        outdf = cbind(outdf,round(computedResults()$coef_ints[[input$which_model]],3))
-        cat(print(pryr::mem_used()))
+        coef_ints = round(computedResults()$coef_ints[[input$which_model]],3)
+        outdf = cbind(outdf,coef_ints[1:nrow(outdf),])
+        names(outdf) = c("Parameters","Estimate","Lower Cl", "Upper Cl")
+        #cat(print(pryr::mem_used()))
         outdf
         
-      }, options = list(searching=FALSE))
+      }, options = list(searching=FALSE, paging=FALSE))
     }
   )
 }

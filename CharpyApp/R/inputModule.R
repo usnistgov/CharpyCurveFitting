@@ -9,26 +9,26 @@ inputUI <- function(id) {
     sliderInput(ns('conf_level'),'Confidence Level for Plots',
                 min=.80,max=.99,value=.95,step=.01),
     hr(),
-    selectInput(ns('response_type'),"Response Type",
+    selectInput(ns('response_type'),"Parameter To Be Fit",
                 choices = c('KV (J)'=1,'LE (mm)'=2,'SFA (%)'=3)),
     hr(),
     
     checkboxGroupInput(ns('which_models'),'Select Regression Models',
                   choiceNames=c('Hyperbolic Tangent (HT)',
                                 'Asymmetric Hyperbolic Tangent (AHT)',
-                                'Asymmetric Burr (ABUR)',
+                                'Burr (BUR)',
                                 'Arctangent (ACT)',
                                 'Kohout (KHT)'),
                   choiceValues=c('ht','aht','abur','koh','akoh')),
     
-    selectInput(ns('upper_shelf_option'),
-                'Upper Shelf:',
-                choices=c('Fixed','Random'),
-                selected='Fixed'),
-    
     selectInput(ns('lower_shelf_option'),
                 'Lower Shelf:',
-                choices=c('Fixed','Random'),
+                choices=c('Fixed','Not Fixed'),
+                selected='Fixed'),
+    
+    selectInput(ns('upper_shelf_option'),
+                'Upper Shelf:',
+                choices=c('Fixed','Not Fixed'),
                 selected='Fixed'),
     
     hr(),
@@ -37,13 +37,30 @@ inputUI <- function(id) {
     numericInput(ns('lower_shelf'),"Lower Shelf",0),
     numericInput(ns('upper_shelf'),"Upper Shelf",1.43),
     hr(),
-    sliderInput(ns('nsim'),"Number Bootstrap Iterations per Model",
-                min=50,max=1000,value=50,step=50),
+    
+    selectInput(ns('num_temps'),"Number of Characteristic Temperatures to be Estimated",
+                choices = 0:3, selected=0),
+    
+    conditionalPanel(condition = "input.num_temps >= 1", {
+      numericInput(ns('respval1'),'Response Value 1',0,min=0,max=100)
+    },ns=ns),
+    
+    conditionalPanel(condition = "input.num_temps >= 2", {
+      numericInput(ns('respval2'),'Response Value 2',0,min=0,max=100)
+    },ns=ns),
+    
+    conditionalPanel(condition = "input.num_temps == 3", {
+      numericInput(ns('respval3'),'Response Value 3',0,min=0,max=100)
+    },ns=ns),
+    hr(),
+    
+    selectInput(ns('nsim'),"Number Bootstrap Iterations per Model",
+                choices = list('50 (test run)'=50,'500 (full run)'=500)),
     hr(),
     conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht')", {
       tagList(
         h5('Starting Values for Hyperbolic Tangent Models'),
-        numericInput(ns('c_prov'),'\u00B0C',50),
+        numericInput(ns('c_prov'),'C',50),
         numericInput(ns('d_prov'),'D',.0001),
         numericInput(ns('t0_prov'),'DBTT (\u00B0C)',10))
     },ns=ns),
@@ -56,8 +73,8 @@ inputUI <- function(id) {
     conditionalPanel(condition = "input.which_models.includes('koh') || input.which_models.includes('akoh')", {
       tagList(
         h5('Starting Values for Kohout Models'),
-        numericInput(ns('ck_prov'),'\u00B0C',20),
-        numericInput(ns('p_prov'),'P',2),
+        numericInput(ns('ck_prov'),'C',20),
+        numericInput(ns('p_prov'),'p',2),
         numericInput(ns('dbtt'),'T0 (\u00B0C)',-5))
     },ns=ns),
     
@@ -70,7 +87,6 @@ inputServer <- function(id) {
   moduleServer(
     id,
     function(input,output,session){
-  
       
       userInputs <- eventReactive(input$goButton, {
         # format user inputs
@@ -97,10 +113,10 @@ inputServer <- function(id) {
         if(all(shelves_in == c('Fixed','Fixed') )) {
           shelves = 'bsf'
         
-        } else if(all(shelves_in == c('Fixed','Random') )) {
+        } else if(all(shelves_in == c('Fixed','Not Fixed') )) {
           stop('LSF, USR not supported (yet).')
           
-        } else if(all(shelves_in == c('Random','Fixed') )) {
+        } else if(all(shelves_in == c('Not Fixed','Fixed') )) {
           shelves = 'usf'
         
         } else {
@@ -177,20 +193,22 @@ inputServer <- function(id) {
         n.new = 20
         fit = as.numeric(input$response_type)
 
-        if (fit==1) {
-          yval = c(28,41)  # Absorbed energy values of interest to nuclear community
-        } else if (fit==2) {
-          yval = 0.89      # Lateral expansion value of interest to nuclear community
-        } else if (fit==3) {
-          yval = 50        # Shear Fracture Appearance
+        # if (fit==1) {
+        #   yval = c(28,41)  # Absorbed energy values of interest to nuclear community
+        # } else if (fit==2) {
+        #   yval = 0.89      # Lateral expansion value of interest to nuclear community
+        # } else if (fit==3) {
+        #   yval = 50        # Shear Fracture Appearance
+        # }
+        
+        if(input$num_temps > 0) {
+          yval = as.numeric(c(input$respval1,input$respval2,input$respval3)[1:input$num_temps])
+        
+        } else {
+          yval = NA
         }
         
         
-        # for LSE, use bounds [laa, lbb] for all responses
-        #
-        # for USE, 
-        #  1.  For KV and LE, assume normal(USE, u(USE))
-        #  2.  for SFA, use bounds [c,d] for SFA (fit=3) (d=100)
         
         # default values for each response
         if (fit == 1) {
@@ -219,8 +237,6 @@ inputServer <- function(id) {
         t = seq(min(temp), max(temp), length.out=n.new)
         newt = data.frame(t)
         names(newt) = c("temp")
-        
-        #browser()
         
         # Jolene's code:
         cat('fitting')
@@ -269,11 +285,12 @@ inputServer <- function(id) {
         
         computedResults = list(mstats=mstats,results=results,other_vars=other_vars)
         
-        boots_res = compute_boot(computedResults)
-        
-        computedResults$boots = boots_res$bout
-        computedResults$coef_ints = boots_res$coef_ints
-        computedResults$tpout = boots_res$tpout
+        if(length(mod2) > .5) {
+          boots_res = compute_boot(computedResults)
+          computedResults$boots = boots_res$bout
+          computedResults$coef_ints = boots_res$coef_ints
+          computedResults$tpout = boots_res$tpout
+        }
         
         return(computedResults)
         

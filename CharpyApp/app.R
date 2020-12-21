@@ -12,7 +12,7 @@ source('R/functions_4_more_fun_v12.R')
 
 ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
 
-    titlePanel("Transition Curve-Fitting Tool"),
+    titlePanel("Transition Curve Fitting Tool"),
 
     sidebarLayout(
         sidebarPanel(
@@ -21,11 +21,11 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
 
         mainPanel(
             tabsetPanel(
-                tabPanel('Model Fits', 
+                tabPanel('Regression Results', 
                          plotFitsUI('fits_and_metrics'),
                          hr(),
                          plotCoefsTableUI('coef_table')),
-                tabPanel('Other Plots', 
+                tabPanel('Diagnostic Plots', 
                          plotResidsUI('resids'))
             )
         )

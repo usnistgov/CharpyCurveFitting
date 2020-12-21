@@ -10,7 +10,7 @@ compute_boot <- function(computedResults) {
   tpout = list()
   
   withProgress(message = "Running Bootstrap Iterations", value = 0, {
-  
+    
     for(j in 1:length(other_vars$mod2)){
       k = other_vars$mstats2$modid[j]
       res = results[[k]]
@@ -49,18 +49,23 @@ compute_boot <- function(computedResults) {
       coef_ints[[model_name]] = compute_boot_coefs(bsres$BBeta,
                                                    other_vars)
       
-      tpout[[model_name]] = tfun(model_name,
-                                 res,
-                                 other_vars$yval,
-                                 other_vars$lower_shelf,
-                                 other_vars$upper_shelf,
-                                 other_vars$alpha,
-                                 bsres$BBeta,
-                                 other_vars$nsim,
-                                 other_vars$fit,
-                                 other_vars$temp,
-                                 fun,
-                                 other_vars$yy)
+      if(any(is.na(other_vars$yval))) {
+        # do nothing
+      } else {
+        tpout[[model_name]] = tfun(model_name,
+                                   res,
+                                   other_vars$yval,
+                                   other_vars$lower_shelf,
+                                   other_vars$upper_shelf,
+                                   other_vars$alpha,
+                                   bsres$BBeta,
+                                   other_vars$nsim,
+                                   other_vars$fit,
+                                   other_vars$temp,
+                                   fun,
+                                   other_vars$yy)
+      }
+
       
       incProgress(1/length(other_vars$mod2), detail = paste("Model",j,"of",length(other_vars$mod2)))
   
@@ -130,5 +135,36 @@ compute_boot_coefs <- function(bbeta,other_vars) {
   uppers = ests + qt(1 - alpha/2,dof)*SEs/sqrt(nn)
   
   return(data.frame(estimate = ests, lower = lowers, upper = uppers))
+  
+}
+
+correct_names <- function(names) {
+  
+  outnames = rep("",length(names))
+  
+  for(ii in 1:length(names)) {
+    
+    # HT, AHT, BUR, ACT, KHT
+    
+    if(grepl('^ht',names[ii])) {
+      outnames[ii] = 'HT'
+      
+    } else if(grepl('aht',names[ii])) {
+      outnames[ii] = 'AHT'
+      
+    } else if(grepl('abur',names[ii])) {
+      outnames[ii] = 'BUR'
+      
+    } else if(grepl('^koh',names[ii])) {
+      outnames[ii] = 'ACT'
+      
+    } else if(grepl('akoh',names[ii])) {
+      outnames[ii] = 'KHT'
+      
+    }
+    
+  }
+  
+  return(outnames)
   
 }

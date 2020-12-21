@@ -983,6 +983,8 @@ report = function(mod,res,alpha,bsres){
 ###########################################################
 # function to compute hat matrix for standardized residuals
 hat = function(mod,res,temp,lower_shelf,upper_shelf){
+  
+  nn = length(temp)
 
 if(mod=="ht"){
    cc = coef(res)[1]

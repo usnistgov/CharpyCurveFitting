@@ -45,57 +45,81 @@ aht     <- function(beta,temp){
 aht.res <- function(beta,temp,yy){yy - aht(beta,temp)}
 
 ###
-htf     <- function(beta,temp,lower_shelf,upper_shelf){
+htf     <- function(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                      aa = (upper_shelf + lower_shelf)/2
                      bb = (upper_shelf - lower_shelf)/2
                      aa + bb*tanh((temp - beta[2]) / beta[1])}
 
-htf.res  <- function(beta,temp,yy,lower_shelf,upper_shelf){
+htf.res  <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                       yy - htf(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf)}
 
 ####
-ahtf     <- function(beta,temp,lower_shelf,upper_shelf){
+ahtf     <- function(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                       aa = (upper_shelf + lower_shelf)/2
                       bb = (upper_shelf - lower_shelf)/2
                       aa + bb*tanh((temp - beta[2])/(beta[1] + beta[3]*temp))}
 
-ahtf.res <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf){
+ahtf.res <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                       yy - ahtf(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf)}
 
 ####
-htuf     <- function(beta,temp,upper_shelf){
+htuf     <- function(beta,temp,upper_shelf=upper_shelf){
                       aa = (upper_shelf + beta[3])/2
                       bb = (upper_shelf - beta[3])/2
                       aa + bb*tanh((temp - beta[2]) / beta[1])}
-htuf.res <- function(beta,temp,yy,upper_shelf){
+htuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                       yy - htuf(beta,temp,upper_shelf=upper_shelf)}
 
 #####
-ahtuf     <- function(beta,temp,upper_shelf){
+ahtuf     <- function(beta,temp,upper_shelf=upper_shelf){
                        aa = (upper_shelf + beta[4])/2
                        bb = (upper_shelf - beta[4])/2
                        aa + bb*tanh((temp - beta[2])/(beta[1] + beta[3]*temp))}
-ahtuf.res <- function(beta,temp,yy,upper_shelf){
+ahtuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                        yy - ahtuf(beta,temp,upper_shelf=upper_shelf)}
 
 ####
+
+htlf     <- function(beta,temp,lower_shelf=lower_shelf){
+                      aa = (beta[3] - lower_shelf)/2
+                      bb = (beta[3] - lower_shelf)/2
+                      aa + bb*tanh((temp - beta[2]) / beta[1])}
+htlf.res <- function(beta,temp,yy,lower_shelf=lower_shelf){
+                      yy - htlf(beta,temp,lower_shelf=lower_shelf)}
+
+#####
+ahtlf     <- function(beta,temp,lower_shelf=lower_shelf){
+                       aa = (beta[4] - lower_shelf)/2
+                       bb = (beta[4] - lower_shelf)/2
+                       aa + bb*tanh((temp - beta[2])/(beta[1] + beta[3]*temp))}
+ahtlf.res <- function(beta,temp,yy,lower_shelf=lower_shelf){
+                       yy - ahtlf(beta,temp,lower_shelf=lower_shelf)}
+
+####														 
 abur     <- function(beta,temp){beta[4] + (beta[5] - beta[4])*
                       (1 + exp(-beta[1]*(temp-beta[2])))^(-beta[3])}
 abur.res <- function(beta,temp,yy){yy - abur(beta,temp)}
 
 #####
-aburf     <- function(beta,temp,lower_shelf,upper_shelf){
+aburf     <- function(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                        lower_shelf + (upper_shelf - lower_shelf) * 
                        (1 + exp(-beta[1]*(temp-beta[2])))^(-beta[3])}
-aburf.res <- function(beta,temp,yy,lower_shelf,upper_shelf){
+aburf.res <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                        yy - aburf(beta,temp,lower_shelf=lower_shelf, upper_shelf=upper_shelf)}
 
 ######
-aburuf     <- function(beta,temp,upper_shelf){
+aburuf     <- function(beta,temp,upper_shelf=upper_shelf){
                         beta[4] + (upper_shelf - beta[4]) * 
                         (1 + exp(-beta[1]*(temp-beta[2])))^(-beta[3])}
-aburuf.res <- function(beta,temp,yy,upper_shelf){
+aburuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                         yy - aburuf(beta,temp, upper_shelf=upper_shelf)}
+
+######
+aburlf     <- function(beta,temp,lower_shelf=lower_shelf){
+                        lower_shelf + (beta[4] - lower_shelf) * 
+                        (1 + exp(-beta[1]*(temp-beta[2])))^(-beta[3])}
+aburlf.res <- function(beta,temp,yy,lower_shelf=lower_shelf){
+                        yy - aburlf(beta,temp, lower_shelf=lower_shelf)}
 
 ###
 koh     <- function(beta,temp){(beta[3]+beta[4])/2 + ((beta[4]-beta[3])/3.141593)*
@@ -103,18 +127,25 @@ koh     <- function(beta,temp){(beta[3]+beta[4])/2 + ((beta[4]-beta[3])/3.141593
 koh.res <- function(beta,temp,yy){yy - koh(beta,temp)}
        
 ####
-kohf     <- function(beta,temp,lower_shelf,upper_shelf){
+kohf     <- function(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                      (lower_shelf+upper_shelf)/2 + ((upper_shelf-lower_shelf)/3.141593)*
                      atan(3.141593*(temp-beta[2])/(2*beta[1]))}
-kohf.res <- function(beta,temp,yy,lower_shelf,upper_shelf){
+kohf.res <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                       yy - kohf(beta,temp,lower_shelf=lower_shelf, upper_shelf=upper_shelf)}
 
 #####
-kohuf     <- function(beta,temp,upper_shelf){
+kohuf     <- function(beta,temp,upper_shelf=upper_shelf){
                        (beta[3]+upper_shelf)/2 + ((upper_shelf-beta[3])/3.141593)*
                        atan(3.141593*(temp-beta[2])/(2*beta[1]))}
-kohuf.res <- function(beta,temp,yy,upper_shelf){
+kohuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                        yy - kohuf(beta,temp,upper_shelf=upper_shelf)}
+
+#####
+kohlf     <- function(beta,temp,lower_shelf=lower_shelf){
+                       (lower_shelf + beta[3])/2 + ((beta[3] - lower_shelf)/3.141593)*
+                       atan(3.141593*(temp-beta[2])/(2*beta[1]))}
+kohlf.res <- function(beta,temp,yy,lower_shelf=lower_shelf){
+                       yy - kohlf(beta,temp,lower_shelf=lower_shelf)}
 
 ####
 akoh <- function(beta,temp){
@@ -125,22 +156,31 @@ as.numeric(temp  > beta[2])*(beta[5] - (beta[3]*(beta[5] - beta[4])/(1+beta[3]))
 akoh.res <- function(beta,temp,yy){yy - akoh(beta,temp)}
 
 #####
-akohf <- function(beta,temp,lower_shelf,upper_shelf){
+akohf <- function(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
 as.numeric(temp <= beta[2])*(lower_shelf + ((upper_shelf - lower_shelf)/(1+beta[3]))*
                    exp((temp-beta[2])*(1+beta[3])/(2*beta[1]))) +
 as.numeric(temp  > beta[2])*(upper_shelf - (beta[3]*(upper_shelf - lower_shelf)/(1+beta[3]))*
                    exp(-(1+beta[3])*(temp-beta[2])/(2*beta[3]*beta[1])))}
-akohf.res <- function(beta,temp,yy,lower_shelf,upper_shelf){
+akohf.res <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                        yy - akohf(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf)}
 
 ######
-akohuf <- function(beta,temp,upper_shelf){
+akohuf <- function(beta,temp,upper_shelf=upper_shelf){
 as.numeric(temp <= beta[2])*(beta[4] + ((upper_shelf - beta[4])/(1+beta[3]))*
                    exp((temp-beta[2])*(1+beta[3])/(2*beta[1]))) +
 as.numeric(temp  > beta[2])*(upper_shelf - (beta[3]*(upper_shelf - beta[4])/(1+beta[3]))*
                    exp(-(1+beta[3])*(temp-beta[2])/(2*beta[3]*beta[1])))}
-akohuf.res <- function(beta,temp,yy,upper_shelf){
+akohuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                         yy - akohuf(beta,temp,upper_shelf=upper_shelf)}
+
+######
+akohlf <- function(beta,temp,lower_shelf=lower_shelf){
+as.numeric(temp <= beta[2])*(lower_shelf + ((beta[4] - lower_shelf)/(1+beta[3]))*
+                   exp((temp-beta[2])*(1+beta[3])/(2*beta[1]))) +
+as.numeric(temp  > beta[2])*(beta[4] - (beta[3]*(beta[4] - lower_shelf)/(1+beta[3]))*
+                   exp(-(1+beta[3])*(temp-beta[2])/(2*beta[3]*beta[1])))}
+akohlf.res <- function(beta,temp,yy,lower_shelf=lower_shelf){
+                        yy - akohlf(beta,temp,lower_shelf=lower_shelf)}
 
 
 ######################################
@@ -155,8 +195,10 @@ pfun = function(mod,res,temp,fun,lower_shelf,upper_shelf){
       prval = fun(beta,temp)
     } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
       prval = fun(beta,temp,lower_shelf,upper_shelf)
-    } else {
+    } else if (mod %in% c("htuf","ahtuf","aburuf","kohuf","akohuf")) {
       prval = fun(beta,temp,upper_shelf)
+    } else if (mod %in% c("htlf","ahtlf","aburlf","kohlf","akohlf")) {
+      prval = fun(beta,temp,lower_shelf)   
     }
     return(prval)
 } ### end of pfun

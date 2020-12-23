@@ -3,14 +3,16 @@
 # lower shelf > 0, upper shelf <= 100 for fit=3
 limits <- function(mod,npar,fit){
 # generate lower limits for models
-    low = rep(-Inf, npar)  # for htf, aburf, kohf, akohf, htlf (fixed shelves)
+    low = rep(-Inf, npar)  # for htf, ahtf, aburf, kohf, akohf, htlf (fixed shelves)
     
-    if(mod %in% c("htuf","ahtf","kohuf","kohlf")) low = c(-Inf, -Inf, 0)
-    if(mod %in% c("ht","ahtuf","ahtlf")) low = c(-Inf, -Inf, 0, 0) 
-    if(mod %in% c("koh")) low = c(-Inf, -Inf, 0, -Inf)
+    if(mod %in% c("htuf","kohuf","kohlf")) low = c(-Inf, -Inf, 0)
+    if(mod == "ht") low = c(-Inf, -Inf, 0, 0)
+    if(mod %in% c("ahtuf","ahtlf")) low = c(-Inf, -Inf, -Inf, 0)
+
+    if(mod == "koh") low = c(-Inf, -Inf, 0, -Inf)
     if(mod %in% c("aburuf","akohuf","aburlf","akohlf")) low = c(-Inf, -Inf, -Inf, 0)
-    if(mod=="aht") low = c(-Inf, -Inf, 0, 0, 0)
-    if(mod %in% c("abur","akoh")) low = c(-Inf, -Inf, -Inf, 0, 0)
+											   
+    if(mod %in% c("abur","akoh","aht")) low = c(-Inf, -Inf, -Inf, 0, 0)
 
 # generate upper limits for models - default is no upper limit
     hi = rep(Inf, npar)
@@ -355,18 +357,27 @@ plot.mods = function(yy,temp,mod,results,tt,dfmod,colorz,lower_shelf,upper_shelf
     if(i=="ht")    points(tt, ht(coef(results$ht),tt), type="l", col=colorz[j])
     if(i=="htf")   points(tt, htf(coef(results$htf),tt,lower_shelf,upper_shelf), type="l", col=colorz[j])
     if(i=="htuf")  points(tt, htuf(coef(results$htuf),tt,upper_shelf), type="l", col=colorz[j])
+    if(i=="htlf")  points(tt, htlf(coef(results$htlf),tt,lower_shelf), type="l", col=colorz[j])
+
     if(i=="aht")   points(tt, aht(coef(results$aht),tt), type="l", col=colorz[j])
     if(i=="ahtf")  points(tt, ahtf(coef(results$ahtf), tt,lower_shelf,upper_shelf), type="l", col=colorz[j])
     if(i=="ahtuf") points(tt, ahtuf(coef(results$ahtuf),tt,upper_shelf), type="l", col=colorz[j])
+    if(i=="ahtlf") points(tt, ahtlf(coef(results$ahtlf),tt,lower_shelf), type="l", col=colorz[j])
+
     if(i=="abur")  points(tt, abur(coef(results$abur),tt), type="l", col=colorz[j])
     if(i=="aburf") points(tt, aburf(coef(results$aburf),tt,lower_shelf,upper_shelf), type="l", col=colorz[j])
     if(i=="aburuf")points(tt, aburuf(coef(results$aburuf),tt,upper_shelf), type="l", col=colorz[j])
+    if(i=="aburlf")points(tt, aburlf(coef(results$aburlf),tt,lower_shelf), type="l", col=colorz[j])
+
     if(i=="koh")   points(tt, koh(coef(results$koh),tt), type="l", col=colorz[j])
     if(i=="kohf")  points(tt, kohf(coef(results$kohf),tt,lower_shelf,upper_shelf), type="l", col=colorz[j])
     if(i=="kohuf") points(tt, kohuf(coef(results$kohuf),tt,upper_shelf), type="l", col=colorz[j])
+    if(i=="kohlf") points(tt, kohlf(coef(results$kohlf),tt,lower_shelf), type="l", col=colorz[j])
+
     if(i=="akoh")  points(tt, akoh(coef(results$akoh),tt), type="l", col=colorz[j])
     if(i=="akohf") points(tt, akohf(coef(results$akohf),tt,lower_shelf,upper_shelf), type="l", col=colorz[j])
     if(i=="akohuf")points(tt, akohuf(coef(results$akohuf),tt,upper_shelf), type="l", col=colorz[j])
+    if(i=="akohlf")points(tt, akohlf(coef(results$akohlf),tt,lower_shelf), type="l", col=colorz[j])
   }
 } ### end plot.mods
 

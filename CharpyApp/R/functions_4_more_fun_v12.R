@@ -3,19 +3,23 @@
 # lower shelf > 0, upper shelf <= 100 for fit=3
 limits <- function(mod,npar,fit){
 # generate lower limits for models
-    low = rep(-Inf, npar)  # for htf, aburf, kohf, akohf
-    if(mod %in% c("htuf","ahtf","kohuf")) low = c(-Inf, -Inf, 0)
-    if(mod %in% c("ht","ahtuf")) low = c(-Inf, -Inf, 0, 0) 
+    low = rep(-Inf, npar)  # for htf, aburf, kohf, akohf, htlf (fixed shelves)
+    
+    if(mod %in% c("htuf","ahtf","kohuf","kohlf")) low = c(-Inf, -Inf, 0)
+    if(mod %in% c("ht","ahtuf","ahtlf")) low = c(-Inf, -Inf, 0, 0) 
     if(mod %in% c("koh")) low = c(-Inf, -Inf, 0, -Inf)
-    if(mod %in% c("aburuf","akohuf")) low = c(-Inf, -Inf, -Inf, 0)
+    if(mod %in% c("aburuf","akohuf","aburlf","akohlf")) low = c(-Inf, -Inf, -Inf, 0)
     if(mod=="aht") low = c(-Inf, -Inf, 0, 0, 0)
-    if(mod %in% c("abur","akoh")) low = c(-Inf, -Inf, -Inf, 0, -Inf)
+    if(mod %in% c("abur","akoh")) low = c(-Inf, -Inf, -Inf, 0, 0)
+
+# generate upper limits for models - default is no upper limit
+    hi = rep(Inf, npar)
+
 # generate upper limits for models when fit=3
-    hi = rep(Inf, npar) # default is no upper limit
     if(fit==3){
-       if(mod %in% c("ht","koh")) hi = c(Inf, Inf, Inf, 100)
-       if(mod %in% c("aht")) hi = c(Inf, Inf, Inf, Inf, 100)
-       if(mod %in% c("abur","akoh")) hi = c(Inf, Inf, Inf, Inf, 100)   
+       if(mod %in% c("ht","koh","ahtlf","aburlf","akohlf")) hi = c(Inf, Inf, Inf, 100)
+       if(mod %in% c("aht","abur","akoh")) hi = c(Inf, Inf, Inf, Inf, 100) 
+       if(mod %in% c("htlf","kohlf")) hi = c(Inf, Inf, 100)
    } 
   return(cbind(low,hi))
 } ### end of limits

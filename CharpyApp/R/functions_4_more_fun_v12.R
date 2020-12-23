@@ -226,11 +226,17 @@ fitmod = function(mod,upper_shelf,lower_shelf,yy,temp,fun,start,fit){
                     lower_shelf=lower_shelf, upper_shelf=upper_shelf, 
                     lower=low, upper=hi, control=ctrl)
       resid = fun(rfit$par,temp,yy,lower_shelf,upper_shelf)
-  } else {
+  } else if(mod %in% c("htuf","ahtuf","aburuf","kohuf","akohuf")) {
       rfit = nls.lm(par=start, fn=fun, temp=temp, yy=yy, 
                     upper_shelf=upper_shelf, lower=low, upper=hi, 
                     control=ctrl)
       resid = fun(rfit$par,temp,yy,upper_shelf)
+
+  } else if(mod %in% c("htlf","ahtlf","aburlf","kohlf","akohlf")) {
+      rfit = nls.lm(par=start, fn=fun, temp=temp, yy=yy, 
+                    lower_shelf=lower_shelf, lower=low, upper=hi, 
+                    control=ctrl)
+      resid = fun(rfit$par,temp,yy,lower_shelf)
   }
 
 # AIC from Banks & Joyner (2017) 
@@ -284,28 +290,38 @@ if (i=="htf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,htf.res,as.numeric(start$htf),fit)}
 if (i=="htuf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,htuf.res,as.numeric(start$htuf),fit)}
+if (i=="htlf"){
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,htlf.res,as.numeric(start$htlf),fit)}
 if (i=="ahtf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ahtf.res,as.numeric(start$ahtf),fit)}
 if (i=="ahtuf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ahtuf.res,as.numeric(start$ahtuf),fit)}
+if (i=="ahtlf"){
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,ahtlf.res,as.numeric(start$ahtlf),fit)}
 if (i=="abur"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,abur.res,as.numeric(start$abur),fit)}
 if (i=="aburf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aburf.res,as.numeric(start$aburf),fit)}
 if (i=="aburuf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aburuf.res,as.numeric(start$aburuf),fit)}
+if (i=="aburlf"){
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,aburlf.res,as.numeric(start$aburlf),fit)}
 if (i=="koh"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,koh.res,as.numeric(start$koh),fit)}
 if (i=="kohf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,kohf.res,as.numeric(start$kohf),fit)}
 if (i=="kohuf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,kohuf.res,as.numeric(start$kohuf),fit)}
+if (i=="kohlf"){
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,kohlf.res,as.numeric(start$kohlf),fit)}
 if (i=="akoh"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akoh.res,as.numeric(start$akoh),fit)}
 if (i=="akohf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akohf.res,as.numeric(start$akohf),fit)} 
 if (i=="akohuf"){
     rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akohuf.res,as.numeric(start$akohuf),fit)} 
+if (i=="akohlf"){
+    rout[[j]] = fitmod(i,upper_shelf,lower_shelf,yy,temp,akohlf.res,as.numeric(start$akohlf),fit)} 
 
 # save model statistics
     modid[j] = j

@@ -481,6 +481,12 @@ ltxt = c(
    paste("C =",   round(coef(res)[1],dig)),
    paste("T0 =",  round(coef(res)[2],dig)),
    paste("LSE =", round(coef(res)[3],dig)))
+} else if (mod=="htlf"){
+ltxt = c(
+   paste("Fixed LSE =", lower_shelf),
+   paste("C =",   round(coef(res)[1],dig)),
+   paste("T0 =",  round(coef(res)[2],dig)),
+   paste("USE =", round(coef(res)[3],dig)))
 } else if (mod=="ahtf"){
 ltxt = c(
    paste("Fixed LSE =", lower_shelf),
@@ -495,6 +501,13 @@ ltxt = c(
    paste("T0 =",  round(coef(res)[2],dig)),
    paste("D =",   round(coef(res)[3],dig)),
    paste("LSE =", round(coef(res)[4],dig)))
+} else if (mod=="ahtlf"){
+ltxt = c(
+   paste("Fixed LSE =", lower_shelf),
+   paste("C =",   round(coef(res)[1],dig)),
+   paste("T0 =",  round(coef(res)[2],dig)),
+   paste("D =",   round(coef(res)[3],dig)),
+   paste("USE =", round(coef(res)[4],dig)))
 } else if (mod=="abur"){
 ltxt = c(
    paste("k =",  round(coef(res)[1],dig)),
@@ -516,6 +529,13 @@ ltxt = c(
    paste("T0 =",  round(coef(res)[2],dig)),
    paste("m =",   round(coef(res)[3],dig)),
    paste("LSE =", round(coef(res)[4],dig)))
+} else if (mod=="aburlf"){
+ltxt = c(
+   paste("Fixed LSE =", lower_shelf),
+   paste("k =",   round(coef(res)[1],dig)),
+   paste("T0 =",  round(coef(res)[2],dig)),
+   paste("m =",   round(coef(res)[3],dig)),
+   paste("USE =", round(coef(res)[4],dig)))
 } else if (mod=="koh"){
 ltxt = c(
    paste("C =",    round(coef(res)[1],dig)),
@@ -534,6 +554,12 @@ ltxt = c(
    paste("C =",    round(coef(res)[1],dig)),
    paste("DBTT =", round(coef(res)[2],dig)),
    paste("LSE =",  round(coef(res)[3],dig)))
+} else if (mod=="kohlf"){
+ltxt = c(
+   paste("Fixed LSE =",  lower_shelf),
+   paste("C =",    round(coef(res)[1],dig)),
+   paste("DBTT =", round(coef(res)[2],dig)),
+   paste("USE =",  round(coef(res)[3],dig)))
 } else if (mod=="akoh"){
 ltxt = c(
    paste("C =",   round(coef(res)[1],dig)),
@@ -555,6 +581,13 @@ ltxt = c(
    paste("T0 =",  round(coef(res)[2],dig)),
    paste("p =",   round(coef(res)[3],dig)),
    paste("LSE =", round(coef(res)[4],dig)))
+} else if (mod=="akohlf"){
+ltxt = c(
+   paste("Fixed LSE =", lower_shelf),
+   paste("C =",   round(coef(res)[1],dig)),
+   paste("T0 =",  round(coef(res)[2],dig)),
+   paste("p =",   round(coef(res)[3],dig)),
+   paste("USE =", round(coef(res)[4],dig)))
 }
   return(ltxt)
 } ### end of legtxt
@@ -654,6 +687,15 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
       L2 = (xsim - mvs$lse) / (mvs$use - xsim)
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = mvs$t0 + (mvs$c/2)*L2          # temp from bootstrapped parameters
+
+    } else if (mod=="htlf") {
+      names(mvs) = c("c","t0","lse","use")
+      L1 = (xx[i] - lower_shelf) / (mvec[3] - xx[i])
+      tt[i] = ifelse(L1 > 0, mvec[2] + (mvec[1]/2)*log(L1), NA) # predicted temp
+	  
+      L2 = (xsim - mvs$lse) / (mvs$use - xsim)
+      L2 = log( ifelse(L2 > 0, L2, NA) )
+      ttsim = mvs$t0 + (mvs$c/2)*L2          # temp from bootstrapped parameters
       
     } else if (mod=="aht") {
       names(mvs) = c("c","t0","d","lse","use")
@@ -685,6 +727,15 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = (mvs$t0 + mvs$c*L2/2) / (1 - mvs$d*L2/2)      # temp from bootstrapped parameters
       
+    } else if (mod=="ahtlf") {
+      names(mvs) = c("c","t0","d","lse","use")
+      L1 = (xx[i] - lower_shelf) / (mvec[4] - xx[i])
+      tt[i] = ifelse(L1 > 0, (mvec[2] + mvec[1]*log(L1)/2) / 
+            (1 - mvec[3]*log(L1)/2), NA)                  # predicted temp
+
+      L2 = (xsim - mvs$lse) / (mvs$use - xsim)
+      L2 = log( ifelse(L2 > 0, L2, NA) )
+      ttsim = (mvs$t0 + mvs$c*L2/2) / (1 - mvs$d*L2/2)      # temp from bootstrapped parameters
     } else if (mod=="abur") {
       names(mvs) = c("k","t0","m","lse","use")
       L1 = ((xx[i] - mvec[4])/(mvec[5] - mvec[4]))^(-1/mvec[3]) - 1
@@ -712,6 +763,16 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
       L2 = log( ifelse(L2 > 0, L2, NA) )
       ttsim = mvs$t0  - (1/mvs$k)*L2             # temp from bootstrapped parameters
       
+    } else if (mod=="aburlf") {
+      names(mvs) = c("k","t0","m","lse","use")
+      L1 = ((xx[i] - lower_shelf)/(mvec[4] - lower_shelf))^(-1/mvec[3]) - 1 
+      tt[i] = ifelse(L1 > 0, mvec[2] - (1/mvec[1])*log(L1), NA)     # predicted temp
+
+						 
+      L2 = ((xsim - mvs$lse) /(mvs$use - mvs$lse))^(-1/mvs$m) - 1
+      L2 = log( ifelse(L2 > 0, L2, NA) )
+      ttsim = mvs$t0  - (1/mvs$k)*L2             # temp from bootstrapped parameters 
+
     } else if (mod=="koh") {
       names(mvs) = c("c","DBTT","lse","use")
       tt[i] = mvec[2] + (2*mvec[1]/pi)*tan((0.5*pi/(mvec[4]-mvec[3]))*
@@ -719,7 +780,7 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
       
       ttsim = mvs$DBTT + 
         (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
-                           (2*xsim - (mvs$use+mvs$lse)))     # temp from bootstrapped parameters
+        (2*xsim - (mvs$use+mvs$lse)))     # temp from bootstrapped parameters
       
     } else if (mod=="kohf") {
       names(mvs) = c("c","DBTT","lse","use")
@@ -741,10 +802,22 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
         (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
                            (2*xsim - (mvs$use+mvs$lse)))      # temp from bootstrapped parameters
       
+    } else if (mod=="kohlf") {
+      names(mvs) = c("c","DBTT","lse","use")
+      tt[i] = mvec[2] + 
+             (2*mvec[1]/pi)*tan((0.5*pi/(mvec[3]-lower_shelf))*
+             (2*xx[i] - (mvec[3]+lower_shelf)))                    # predicted temp
+
+      ttsim = mvs$DBTT + 
+             (2*mvs$c/pi)*tan((0.5*pi/(mvs$use-mvs$lse))*
+             (2*xsim - (mvs$use+mvs$lse)))      # temp from bootstrapped parameters
+
     } else if (mod=="akoh") {
       names(mvs) = c("c","t0","p","lse","use")
+      #switch = (mvec[5] + mvec[3]*mvec[4])/(1+mvec[3])
       L1a = (1+mvec[3])*(xx[i]-mvec[4])/(mvec[5]-mvec[4])
       L1a = log( ifelse(L1a > 0, L1a, NA) )
+      #tt1 = mvec[2] + (2*mvec[1]/(1+mvec[3]))*L1a
       L1b = (mvec[5]-xx[i])*(1+mvec[3])/(mvec[3]*(mvec[5]-mvec[4]))
       L1b = log( ifelse(L1b > 0, L1b, NA) )
       if (xx[i] <= mvec[2]) {     

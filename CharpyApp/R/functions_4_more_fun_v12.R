@@ -912,7 +912,7 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
         ttsim[j] = ifelse( tts1 <= sswitch, tts1, tts2 )      # temp from bootstrapped parameters
        } # end of for
 
-   } 
+   } # end of model if
   
      # make sure temp from bootstrapped parameters are within range of temperature data
      # and are not NA before computing standard deviation
@@ -938,7 +938,7 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
 # using parametric bootstrap.  
 # return predicted values for plotting in ci.plot function
 boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
-                uus,laa,lbb,nsim){
+                uaa,laa,lbb,nsim){
   
   # save original data in data frame
   df.old = data.frame(x,yy)
@@ -976,41 +976,48 @@ boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
   # bootstrap loop
   for (l in (1:L)) {
     
-    # generate y response data
+    # generate y response data using truncated normal
     # values can't be less than zero for any response
     # for SFA, ygen <= 100
-    ygen <- f.old + rnorm(nn,0,sigma)
-    ygen = ifelse(ygen < 0, abs(ygen), ygen)
-    ygen = ifelse((fit==3 & ygen > 100), 200-ygen, ygen) 
+    if (fit==3) {
+      ygen = rtruncnorm(nn, 0, 100, f.old, sigma)
+    } else {
+        ygen = rtruncnorm(nn, 0, Inf, f.old, sigma)
+    }
     
     # generate random values of upper and lower shelves
     # for models with at least one fixed shelf
-    # given user-specified uncertainties, uls and uus
-    #   1.  use uniform(laa, lbb) to generate a random lower_shelf 
+    # given user-specified standard errors or bounds
+    #   1.  use uniform(laa, lbb) to generate a random lower_shelf, 
     #   2.  use normal(upper_shelf, uus) to generate
     #       a random upper_shelf value for all responses except for SFA
-    #   3.  for SFA, use uniform(b, 100) to generate a random upper_shelf,
-    #       where b = 100-uus*sqrt(12) (solve for a- in Eq. 6 of GUM)
-    lshelf = runif(1, laa, lbb)
-    ushelf = ifelse(fit==3, runif(1, 100-uus*sqrt(12), 100), 
-                    rnorm(1, upper_shelf, uus))
-    if (ushelf < lshelf) ushelf = lshelf*1.10
-    
-    # fit model for bootstrap sample, generate statistics
-    # constraints on model fits should ensure that shelves
-    # aren't outside the acceptable range of values
-    if (mod %in% c("ht","aht","abur","koh","akoh")){ 
-      rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                       lower=low, upper=hi, control=ctrl)
-    } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
-      rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                       lower_shelf=lower_shelf, upper_shelf=upper_shelf, 
-                       lower=low, upper=hi, control=ctrl)
-    } else {
-      rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                       upper_shelf=upper_shelf, 
-                       lower=low, upper=hi, control=ctrl)
-    }
+    #   3.  for SFA, use uniform(uaa, 100) to generate a random upper_shelf
+																	 
+  lshelf = runif(1, laa, lbb)
+  ushelf = ifelse(fit==3, runif(1, uaa, 100), 
+                          rnorm(1, upper_shelf, uus))
+  if (ushelf < lshelf) ushelf = lshelf*1.10
+  
+# fit model for bootstrap sample, generate statistics
+# constraints on model fits should ensure that shelves
+# aren't outside the acceptable range of values
+  if (mod %in% c("ht","aht","abur","koh","akoh")){ 
+     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                      lower=low, upper=hi, control=ctrl)
+  } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
+     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                      lower_shelf=lower_shelf, upper_shelf=upper_shelf, 
+                      lower=low, upper=hi, control=ctrl)
+  } else if (mod %in% c("htuf","ahtuf","aburuf","kohuf","akohuf")){
+     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                      upper_shelf=upper_shelf, 
+                      lower=low, upper=hi, control=ctrl)
+  } else if (mod %in% c("htlf","ahtlf","aburlf","kohlf","akohlf")){
+     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                      lower_shelf=lower_shelf, 
+                      lower=low, upper=hi, control=ctrl)
+  }
+
     
     # for cases where there is no fitting error, save results
     # otherwise go to next sample
@@ -1028,8 +1035,10 @@ boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
         BBeta[l,] <- c(coef(rl.nlm), sig)
       } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
         BBeta[l,] <- c(coef(rl.nlm), lshelf, ushelf, sig)
-      } else {
+      } else if (mod %in% c("htuf","ahtuf","aburuf","kohuf","akohuf")){
         BBeta[l,] <- c(coef(rl.nlm), ushelf, sig)
+      } else if (mod %in% c("htlf","ahtlf","aburlf","kohlf","akohlf")){
+          BBeta[l,] <- c(coef(rl.nlm), lshelf, sig)
       }
     } else {
       next   ### go to next sample

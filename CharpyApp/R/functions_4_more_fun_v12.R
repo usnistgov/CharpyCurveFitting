@@ -1184,6 +1184,17 @@ if(mod=="htuf"){
    dlse = -(tanh((temp-t0)/cc)-1)/2
    V = cbind(dc, dt0, dlse)
 }
+if(mod=="htlf"){
+   cc = coef(res)[1]
+   t0 = coef(res)[2]
+   use = coef(res)[3]
+   lse = lower_shelf
+   gg = (temp - t0) / cc
+   dc = -((use - lse)/2)*(temp - t0)*(sech(gg)^2)/(cc^2)
+   dt0 = -((use - lse)/2)*(sech(gg)^2)/cc
+   dlse = -(tanh((temp-t0)/cc)-1)/2
+   V = cbind(dc, dt0, dlse)
+}				
 if(mod=="htf"){
    cc = coef(res)[1]
    t0 = coef(res)[2]
@@ -1219,6 +1230,18 @@ if(mod=="ahtuf"){
    dlse = -(tanh((temp-t0)/(d*temp+cc))-1)/2
    V = cbind(dc,dt0,dd,dlse)
 }
+if(mod=="ahtlf"){
+   cc = coef(res)[1]
+   t0 = coef(res)[2]
+   d = coef(res)[3]
+   use = coef(res)[4]
+   lse  = lower_shelf
+   dc = ((t0-temp)*(use-lse)*sech((temp-t0)/(cc+d*temp))^2)/(2*(cc+d*temp)^2)
+   dt0 = -((use-lse)*sech((temp-t0)/(d*temp+cc))^2)/(2*(d*temp+cc))
+   dd = (temp*(t0-temp)*(use-lse)*sech((temp-t0)/(temp*d+cc))^2)/(2*(temp*d+cc)^2)
+   dlse = -(tanh((temp-t0)/(d*temp+cc))-1)/2
+   V = cbind(dc,dt0,dd,dlse)
+}				 
 if(mod=="ahtf"){
    cc = coef(res)[1]
    t0 = coef(res)[2]
@@ -1259,6 +1282,19 @@ if(mod=="aburuf"){
    dlse = 1-1/(exp(-kk*(temp-t0))+1)^mm
    V = cbind(dk,dt0,dm,dlse)
 }
+if(mod=="aburlf"){
+   kk = coef(res)[1]
+   t0 = coef(res)[2]
+   mm = coef(res)[3]
+   use = coef(res)[4]
+   lse = lower_shelf
+   tt0 = temp - t0
+   dk = mm*(tt0)*(use - lse)*exp(-kk*tt0)*(1 + exp(-kk*tt0))^(-mm-1)
+   dt0 = -kk*mm*(use - lse)*exp(-kk*tt0)*(1 + exp(-kk*tt0))^(-mm-1)
+   dm = ((use - lse) / ((1 + exp(-kk*tt0))^mm))*log(1 + exp(-kk*tt0))
+   dlse = 1-1/(exp(-kk*(temp-t0))+1)^mm
+   V = cbind(dk,dt0,dm,dlse)
+}				  
 if(mod=="aburf"){
    kk = coef(res)[1]
    t0 = coef(res)[2]
@@ -1292,6 +1328,16 @@ if(mod=="kohuf"){
    dlse = 1/2 - atan((pi*(temp-t0))/(2*cc))/pi
    V = cbind(dc,dt0,dlse)
 }
+if(mod=="kohlf"){
+   cc = coef(res)[1]
+   t0 = coef(res)[2]
+   use = coef(res)[3]
+   lse = lower_shelf
+   dc = -((temp-t0)*(use-lse))/(2*((pi^2*(temp-t0)^2)/(4*cc^2)+1)*cc^2)
+   dt0 = -(use-lse)/(2*cc*((pi^2*(temp-t0)^2)/(4*cc^2)+1))
+   dlse = 1/2 - atan((pi*(temp-t0))/(2*cc))/pi
+   V = cbind(dc,dt0,dlse)
+}				 
 if(mod=="kohf"){
    cc = coef(res)[1]
    t0 = coef(res)[2]
@@ -1370,6 +1416,39 @@ if(mod=="akohuf"){
    }
    V = cbind(dc,dt0,dp,dlse)
 }
+if(mod=="akohlf"){
+   cc = coef(res)[1]
+   t0 = coef(res)[2]
+   pp = coef(res)[3]
+   use = coef(res)[4]
+   lse = lower_shelf
+   diff = use - lse
+
+   dc = rep(NA,nn)
+   dt0 = rep(NA,nn)
+   dp = rep(NA,nn)
+   dlse = rep(NA,nn)
+
+   for(i in 1:nn){
+   if(temp[i] <= t0){
+
+   ee = exp((pp+1)*(temp[i]-t0)/(2*cc))
+   dc[i] = ((t0-temp[i])*diff/(2*cc^2))*ee
+   dt0[i] = (-diff/(2*cc))*ee
+   dp[i] = (-diff/(2*cc*(pp+1)^2))*(pp*(t0-temp[i])+t0-temp[i]+2*cc)*ee
+   dlse[i] = 1-exp(((pp+1)*(temp[i]-t0))/(2*cc))/(pp+1)
+
+   } else {
+
+   ff = exp(-(pp+1)*(temp[i]-t0)/(2*pp*cc))
+   dc[i] = ((t0-temp[i])*diff/(2*cc^2))*ff
+   dt0[i] = (-diff/(2*cc))*ff
+   dp[i] = (diff/(2*pp*cc*(1+pp)^2))*(pp*(t0-temp[i]-2*cc) + t0 - temp[i])* ff
+   dlse[i] = (pp*exp(-((pp+1)*(temp[i]-t0))/(2*cc*pp)))/(pp+1)
+   }
+   }
+   V = cbind(dc,dt0,dp,dlse)
+}				  
 if(mod=="akohf"){
    cc = coef(res)[1]
    t0 = coef(res)[2]

@@ -1,3 +1,5 @@
+### This file has been merged with Jolene's v16 version of the code. 
+
 ##################################################################
 # function to generate high and low limits for parameter estimates
 # lower shelf > 0, upper shelf <= 100 for fit=3

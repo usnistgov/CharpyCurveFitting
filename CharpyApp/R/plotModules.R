@@ -16,6 +16,10 @@ plotFitsUI <- function(id){
     DT::dataTableOutput(ns('fit_metrics_table')),
     br(),
     hr(),
+    h3('Regression Coefficients',align='center'),
+    DT::dataTableOutput(ns('coefs_table')),
+    br(),
+    hr(),
     h3("Characteristic Temperatures",align='center'),
     DT::dataTableOutput(ns('tpout'))
     
@@ -60,9 +64,9 @@ plotFitsServer <- function(id,computedResults) {
         if(length(computedResults()$tpout) == 0) {
           return(NULL)
         }
-        
+      
         outdf = dplyr::bind_rows(computedResults()$tpout)
-        outdf = cbind(names(computedResults()$tpout),outdf)
+        outdf = cbind( rep(names(computedResults()$tpout),each=length(computedResults()$other_vars$yval)) ,outdf)
         names(outdf) = c('Model','Ref Value','Temperature Est', 'SE','Lower Cl','Upper Cl')
         outdf$Model = correct_names(outdf$Model)
         outdf
@@ -86,6 +90,7 @@ plotFitsServer <- function(id,computedResults) {
         newt = other_vars$newt
         lower_shelf = other_vars$lower_shelf
         upper_shelf = other_vars$upper_shelf
+        yvar_name = other_vars$yvar_name
         
         # prepare df for plotting
         original_data = data.frame(yy=yy,temp=temp)
@@ -105,13 +110,18 @@ plotFitsServer <- function(id,computedResults) {
                                               newt$temp, 
                                               other_vars$upper_shelf)
               
-          } else if(grepl('f$',model_name)) {
+          } else if(grepl('lf$',model_name)) {
             df_to_plot$value[inds] = myfun(coef(results[[model_name]]), 
                                               newt$temp,
-                                              other_vars$lower_shelf,
-                                              other_vars$upper_shelf)
+                                              other_vars$lower_shelf)
               
-          } else {
+          } else if(grepl('f$',model_name)) {
+            df_to_plot$value[inds] = myfun(coef(results[[model_name]]), 
+                                           newt$temp,
+                                           other_vars$lower_shelf,
+                                           other_vars$upper_shelf)
+            
+          }else {
             df_to_plot$value[inds] = myfun(coef(results[[model_name]]),
                                            newt$temp)
           }
@@ -121,7 +131,7 @@ plotFitsServer <- function(id,computedResults) {
           
         }
         
-        yvar_name = c('KV','LE','SFA')[other_vars$fit]
+        
         
         df_to_plot$model = correct_names(df_to_plot$model)
         
@@ -144,6 +154,54 @@ plotFitsServer <- function(id,computedResults) {
         p
         
       })
+      
+      output$coefs_table <- DT::renderDataTable({
+        
+        if(is.null(computedResults()$coef_ints)) {
+          return(NULL)
+        }
+        
+        # get coefficient names
+        # if (input$which_model %in% c("ht","aht","abur","koh","akoh")){
+        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'sigma')
+        #   
+        # } else if (input$which_model %in% c("htf","ahtf","aburf","kohf","akohf")){
+        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'Lower shelf','Upper shelf','sigma')
+        #   
+        # } else {
+        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'Upper shelf','sigma')
+        # }
+        
+        other_vars = computedResults()$other_vars
+        
+        num_mods = length(other_vars$mod2)
+        mod_names = other_vars$mod2
+        
+        outlist = vector(mode='list',length=num_mods)
+        
+        for(ii in 1:num_mods) {
+          
+          params = names(other_vars$start[[ mod_names[ii] ]])
+          this_df = data.frame(params = params)
+          coef_ints = round(computedResults()$coef_ints[[ mod_names[ii] ]],3)
+          
+          this_df = cbind(mod_names[ii],this_df,coef_ints[1:nrow(this_df),])
+          names(this_df) = c("Model","Coefficient","Estimate","S.E.","Lower Cl", "Upper Cl")
+          
+          outlist[[ii]] = this_df
+          
+        }
+        
+        outdf = bind_rows(outlist)
+        outdf$Coefficient = toupper(outdf$Coefficient)
+        inds_to_lwr = outdf$Coefficient %in% c('K','M','P')
+        outdf$Coefficient[inds_to_lwr] = tolower(outdf$Coefficient[inds_to_lwr])
+        outdf$Model = correct_names(outdf$Model)
+        outdf
+        
+        
+        
+      }, options = list(searching=FALSE, paging=FALSE))
       
     }
   )
@@ -195,67 +253,3 @@ plotResidsServer <- function(id,computedResults) {
   )
 }
 
-plotCoefsTableUI <- function(id) {
-  ns = NS(id)
-  
-  tagList(
-    br(),
-    h3('Regression Coefficients',align='center'),
-    DT::dataTableOutput(ns('coefs_table')),
-    br()
-  )
-}
-
-plotCoefsTableServer <- function(id,computedResults) {
-  moduleServer(
-    id,
-    function(input,output,session) {
-      
-      output$coefs_table <- DT::renderDataTable({
-
-        if(is.null(computedResults()$coef_ints)) {
-          return(NULL)
-        }
-        
-        # get coefficient names
-        # if (input$which_model %in% c("ht","aht","abur","koh","akoh")){
-        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'sigma')
-        #   
-        # } else if (input$which_model %in% c("htf","ahtf","aburf","kohf","akohf")){
-        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'Lower shelf','Upper shelf','sigma')
-        #   
-        # } else {
-        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'Upper shelf','sigma')
-        # }
-        
-        other_vars = computedResults()$other_vars
-        
-        num_mods = length(other_vars$mod2)
-        mod_names = other_vars$mod2
-        
-        outlist = vector(mode='list',length=num_mods)
-        
-        for(ii in 1:num_mods) {
-          
-          params = names(other_vars$start[[ mod_names[ii] ]])
-          this_df = data.frame(params = params)
-          coef_ints = round(computedResults()$coef_ints[[ mod_names[ii] ]],3)
-          
-          this_df = cbind(mod_names[ii],this_df,coef_ints[1:nrow(this_df),])
-          names(this_df) = c("Model","Parameter","Estimate","Lower Cl", "Upper Cl")
-          
-          outlist[[ii]] = this_df
-          
-        }
-        
-        outdf = bind_rows(outlist)
-        outdf$Parameter = toupper(outdf$Parameter)
-        outdf$Model = correct_names(outdf$Model)
-        outdf
-        
-
-        
-      }, options = list(searching=FALSE, paging=FALSE))
-    }
-  )
-}

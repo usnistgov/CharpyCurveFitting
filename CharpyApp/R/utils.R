@@ -30,6 +30,7 @@ compute_boot <- function(computedResults) {
                    other_vars$uus,
                    other_vars$laa,
                    other_vars$lbb,
+                   other_vars$uus,
                    other_vars$nsim)
       
       # runs bootstrap and computes prediction CIs
@@ -47,7 +48,9 @@ compute_boot <- function(computedResults) {
       
       # compute coefficient CIs
       coef_ints[[model_name]] = compute_boot_coefs(bsres$BBeta,
-                                                   other_vars)
+                                                   other_vars,
+                                                   results,
+                                                   model_name)
       
       if(any(is.na(other_vars$yval))) {
         # do nothing
@@ -102,9 +105,11 @@ compute_boot_CIs <- function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,
   # use studentized bootstrap intervals instead
   
   # studentized bootstrap intervals
-  sdpred = as.vector(sapply(as.data.frame(FF), sd, na.rm = TRUE))
-  ci.lo = f.new - tval*sdpred
-  ci.hi = f.new + tval*sdpred
+  #sdpred = as.vector(sapply(as.data.frame(FF), sd, na.rm = TRUE))
+  #ci.lo = f.new - tval*sdpred
+  #ci.hi = f.new + tval*sdpred
+  ci.lo = as.vector(sapply(as.data.frame(FF),function(x) quantile(x,alpha/2,na.rm=T)))
+  ci.hi = as.vector(sapply(as.data.frame(FF),function(x) quantile(x,1-alpha/2,na.rm=T)))
   df.mc = data.frame(x=x.new, f=f.new, lwr.conf=ci.lo, upr.conf=ci.hi)
   
   # confidence bounds for restricted paramters:
@@ -121,20 +126,26 @@ compute_boot_CIs <- function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,
   return(df.mc)
 }
 
-compute_boot_coefs <- function(bbeta,other_vars) {
+compute_boot_coefs <- function(bbeta,other_vars,results,model_name) {
   
   SEs = apply(bbeta,2,function(x) sqrt(var(x)))
-  ests = apply(bbeta,2,mean)
+  ests = apply(bbeta,2,median)
+  ests[1:length(results[[model_name]]$par)] = results[[model_name]]$par
   
   nn = length(other_vars$temp)
   npar = length(SEs)
   dof = nn - npar
   alpha = 1 - other_vars$conf_level
   
-  lowers = ests - qt(1 - alpha/2,dof)*SEs/sqrt(nn)
-  uppers = ests + qt(1 - alpha/2,dof)*SEs/sqrt(nn)
+  lower_perc = apply(bbeta,2,function(x) quantile(x,alpha/2))
+  upper_perc = apply(bbeta,2,function(x) quantile(x,1-alpha/2))
   
-  return(data.frame(estimate = ests, lower = lowers, upper = uppers))
+  
+  
+  #lowers = ests - qt(1 - alpha/2,dof)*SEs
+  #uppers = ests + qt(1 - alpha/2,dof)*SEs
+  
+  return(data.frame(estimate = ests, stderr = SEs,lower = lower_perc, upper = upper_perc))
   
 }
 

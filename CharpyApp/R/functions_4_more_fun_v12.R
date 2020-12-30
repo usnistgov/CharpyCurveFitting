@@ -1,6 +1,6 @@
 ### This file has been merged with Jolene's v16 version of the code. 
 
-##################################################################
+####
 # function to generate high and low limits for parameter estimates
 # lower shelf > 0, upper shelf <= 100 for fit=3
 limits <- function(mod,npar,fit){
@@ -29,8 +29,8 @@ limits <- function(mod,npar,fit){
 } ### end of limits
 
 
-#################################
-#################################
+####
+####
 # define functions for each model
 
 ##
@@ -74,7 +74,7 @@ htuf     <- function(beta,temp,upper_shelf=upper_shelf){
 htuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                       yy - htuf(beta,temp,upper_shelf=upper_shelf)}
 
-#####
+####
 ahtuf     <- function(beta,temp,upper_shelf=upper_shelf){
                        aa = (upper_shelf + beta[4])/2
                        bb = (upper_shelf - beta[4])/2
@@ -91,7 +91,7 @@ htlf     <- function(beta,temp,lower_shelf=lower_shelf){
 htlf.res <- function(beta,temp,yy,lower_shelf=lower_shelf){
                       yy - htlf(beta,temp,lower_shelf=lower_shelf)}
 
-#####
+####
 ahtlf     <- function(beta,temp,lower_shelf=lower_shelf){
                        aa = (beta[4] - lower_shelf)/2
                        bb = (beta[4] - lower_shelf)/2
@@ -104,21 +104,21 @@ abur     <- function(beta,temp){beta[4] + (beta[5] - beta[4])*
                       (1 + exp(-beta[1]*(temp-beta[2])))^(-beta[3])}
 abur.res <- function(beta,temp,yy){yy - abur(beta,temp)}
 
-#####
+####
 aburf     <- function(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                        lower_shelf + (upper_shelf - lower_shelf) * 
                        (1 + exp(-beta[1]*(temp-beta[2])))^(-beta[3])}
 aburf.res <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                        yy - aburf(beta,temp,lower_shelf=lower_shelf, upper_shelf=upper_shelf)}
 
-######
+####
 aburuf     <- function(beta,temp,upper_shelf=upper_shelf){
                         beta[4] + (upper_shelf - beta[4]) * 
                         (1 + exp(-beta[1]*(temp-beta[2])))^(-beta[3])}
 aburuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                         yy - aburuf(beta,temp, upper_shelf=upper_shelf)}
 
-######
+####
 aburlf     <- function(beta,temp,lower_shelf=lower_shelf){
                         lower_shelf + (beta[4] - lower_shelf) * 
                         (1 + exp(-beta[1]*(temp-beta[2])))^(-beta[3])}
@@ -137,14 +137,14 @@ kohf     <- function(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
 kohf.res <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                       yy - kohf(beta,temp,lower_shelf=lower_shelf, upper_shelf=upper_shelf)}
 
-#####
+###
 kohuf     <- function(beta,temp,upper_shelf=upper_shelf){
                        (beta[3]+upper_shelf)/2 + ((upper_shelf-beta[3])/3.141593)*
                        atan(3.141593*(temp-beta[2])/(2*beta[1]))}
 kohuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                        yy - kohuf(beta,temp,upper_shelf=upper_shelf)}
 
-#####
+####
 kohlf     <- function(beta,temp,lower_shelf=lower_shelf){
                        (lower_shelf + beta[3])/2 + ((beta[3] - lower_shelf)/3.141593)*
                        atan(3.141593*(temp-beta[2])/(2*beta[1]))}
@@ -159,7 +159,7 @@ as.numeric(temp  > beta[2])*(beta[5] - (beta[3]*(beta[5] - beta[4])/(1+beta[3]))
                    exp(-(1+beta[3])*(temp-beta[2])/(2*beta[3]*beta[1])))}
 akoh.res <- function(beta,temp,yy){yy - akoh(beta,temp)}
 
-#####
+####
 akohf <- function(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
 as.numeric(temp <= beta[2])*(lower_shelf + ((upper_shelf - lower_shelf)/(1+beta[3]))*
                    exp((temp-beta[2])*(1+beta[3])/(2*beta[1]))) +
@@ -168,7 +168,7 @@ as.numeric(temp  > beta[2])*(upper_shelf - (beta[3]*(upper_shelf - lower_shelf)/
 akohf.res <- function(beta,temp,yy,lower_shelf=lower_shelf,upper_shelf=upper_shelf){
                        yy - akohf(beta,temp,lower_shelf=lower_shelf,upper_shelf=upper_shelf)}
 
-######
+####
 akohuf <- function(beta,temp,upper_shelf=upper_shelf){
 as.numeric(temp <= beta[2])*(beta[4] + ((upper_shelf - beta[4])/(1+beta[3]))*
                    exp((temp-beta[2])*(1+beta[3])/(2*beta[1]))) +
@@ -177,7 +177,7 @@ as.numeric(temp  > beta[2])*(upper_shelf - (beta[3]*(upper_shelf - beta[4])/(1+b
 akohuf.res <- function(beta,temp,yy,upper_shelf=upper_shelf){
                         yy - akohuf(beta,temp,upper_shelf=upper_shelf)}
 
-######
+####
 akohlf <- function(beta,temp,lower_shelf=lower_shelf){
 as.numeric(temp <= beta[2])*(lower_shelf + ((beta[4] - lower_shelf)/(1+beta[3]))*
                    exp((temp-beta[2])*(1+beta[3])/(2*beta[1]))) +
@@ -187,7 +187,7 @@ akohlf.res <- function(beta,temp,yy,lower_shelf=lower_shelf){
                         yy - akohlf(beta,temp,lower_shelf=lower_shelf)}
 
 
-######################################
+####
 # function to compute predicted values
 pfun = function(mod,res,temp,fun,lower_shelf,upper_shelf){
 
@@ -208,7 +208,7 @@ pfun = function(mod,res,temp,fun,lower_shelf,upper_shelf){
 } ### end of pfun
 
 
-###################################
+####
 # function to perform model fitting
 fitmod = function(mod,upper_shelf,lower_shelf,yy,temp,fun,start,fit){
 
@@ -263,7 +263,7 @@ fitmod = function(mod,upper_shelf,lower_shelf,yy,temp,fun,start,fit){
 } ### end of fitmod
 
 
-#################################################
+####
 # generate fit results & model selection criteria
 # fit results are saved globally
 fits <- function(mod,start,lower_shelf,upper_shelf,yy,temp,fit){
@@ -347,7 +347,7 @@ if (i=="akohlf"){
 } ### end of fits
 
 
-#####################################################
+####
 # plot data and predicted curves for specified models
 plot.mods = function(yy,temp,mod,results,tt,dfmod,colorz,lower_shelf,upper_shelf){
 
@@ -384,7 +384,7 @@ plot.mods = function(yy,temp,mod,results,tt,dfmod,colorz,lower_shelf,upper_shelf
 } ### end plot.mods
 
 
-#############################################
+####
 # residual plots - best four plots - use this
 # use nls function to generate residuals and standardized residuals 
 nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
@@ -454,7 +454,7 @@ nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
 } ### end of nlsres
 
 
-#####################################################
+####
 # generate legend text containing parameter estimates
 legtxt <- function(mod,res,lower_shelf,upper_shelf){
 
@@ -595,7 +595,7 @@ ltxt = c(
 } ### end of legtxt
 
 
-#########################################
+####
 # simple plot of data and predicted curve
 splot = function(yy,temp,mod,res,tt,fun,dfmod,lower_shelf,upper_shelf){
 
@@ -608,7 +608,7 @@ legend("topleft", bty="n", cex=0.8, legend=legtxt(mod,res,lower_shelf,upper_shel
 } ### end of splot
 
 
-###################################################
+####
 # compute t and u(t) given yy (one model at a time)
 tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
                 nsim,fit,temp,fun,yy){
@@ -935,12 +935,12 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
 } ### end of tfun
 
 
-#########################################################
+####
 # function to compute confidence intervals for parameters
 # using parametric bootstrap.  
 # return predicted values for plotting in ci.plot function
 boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
-                uaa,laa,lbb,nsim){
+                uaa,laa,lbb,uus,nsim){
   
   # save original data in data frame
   df.old = data.frame(x,yy)
@@ -1057,7 +1057,7 @@ boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
 } ### end of boot
 
 
-##########################################
+####
 # function to plot confidence bounds using
 # parametric bootstrap results
 ci.plot = function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,
@@ -1117,7 +1117,7 @@ ci.plot = function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,
 } ### end of ci.plot
 
 
-#################################################
+####
 # function to print table of bootstrapped results
 report = function(mod,res,alpha,bsres){
 
@@ -1157,7 +1157,7 @@ report = function(mod,res,alpha,bsres){
 } ### end of report
 
 
-###########################################################
+####
 # function to compute hat matrix for standardized residuals
 hat = function(mod,res,temp,lower_shelf,upper_shelf){
   
@@ -1486,8 +1486,8 @@ if(mod=="akohf"){
 } ### end of hat
 
 
-###############################################
-# function to compute dbtt and it's standard error
+####
+# function to compute dbtt and its standard error
 dbttfun = function(mod,res,bsres,alpha){
 
 # specify the number of parameters in the model

@@ -10,7 +10,11 @@ inputUI <- function(id) {
                 min=.80,max=.99,value=.95,step=.01),
     hr(),
     selectInput(ns('response_type'),"Parameter To Be Fit",
-                choices = c('KV (J)'=1,'LE (mm)'=2,'SFA (%)'=3)),
+                choices = c('KV (J)'=1,'LE (mm)'=2,'SFA (%)'=3,'Other'=4)),
+    
+    conditionalPanel(condition = 'input.response_type == 4',{
+      textInput(ns('custom_param'),"Parameter (Unit)",value="KV (J)")
+    },ns=ns),
     hr(),
     
     checkboxGroupInput(ns('which_models'),'Select Regression Models',
@@ -24,18 +28,15 @@ inputUI <- function(id) {
     selectInput(ns('lower_shelf_option'),
                 'Lower Shelf:',
                 choices=c('Fixed','Not Fixed'),
-                selected='Fixed'),
+                selected='Not Fixed'),
     
     selectInput(ns('upper_shelf_option'),
                 'Upper Shelf:',
                 choices=c('Fixed','Not Fixed'),
-                selected='Fixed'),
+                selected='Not Fixed'),
     
     hr(),
-    h5("Specify lower and upper shelves"),
-    h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
-    numericInput(ns('lower_shelf'),"Lower Shelf",0),
-    numericInput(ns('upper_shelf'),"Upper Shelf",1.43),
+    uiOutput(ns('shelf_selections')),
     hr(),
     
     selectInput(ns('num_temps'),"Number of Characteristic Temperatures to be Estimated",
@@ -55,7 +56,7 @@ inputUI <- function(id) {
     hr(),
     
     selectInput(ns('nsim'),"Number Bootstrap Iterations per Model",
-                choices = list('50 (test run)'=50,'500 (full run)'=500)),
+                choices = list('100 (test run)'=100,'1000 (full run)'=1000)),
     hr(),
     conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht')", {
       tagList(
@@ -88,6 +89,24 @@ inputServer <- function(id) {
     id,
     function(input,output,session){
       
+      output$shelf_selections <- renderUI({
+        
+        if(is.null(input$datafile)) {
+          return(NULL)
+        }
+        
+        dataset = read_csv(input$datafile$datapath)
+        
+        tagList(
+          h5("Specify lower and upper shelves"),
+          h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
+          numericInput(session$ns('lower_shelf'),"Lower Shelf",min(dataset$y)),
+          numericInput(session$ns('upper_shelf'),"Upper Shelf",max(dataset$y))
+        )
+        
+      })
+
+      
       userInputs <- eventReactive(input$goButton, {
         # format user inputs
         req(input$datafile)
@@ -114,7 +133,7 @@ inputServer <- function(id) {
           shelves = 'bsf'
         
         } else if(all(shelves_in == c('Fixed','Not Fixed') )) {
-          stop('LSF, USR not supported (yet).')
+          shelves = 'lsf'
           
         } else if(all(shelves_in == c('Not Fixed','Fixed') )) {
           shelves = 'usf'
@@ -133,6 +152,9 @@ inputServer <- function(id) {
             
           } else if(shelves == 'usf') {
             start$htuf  = c(c=c_prov, t0=t0_prov, lse=lower_shelf)
+          
+          } else if(shelves == 'lsf') {
+            start$htlf  = c(c=c_prov, t0=t0_prov, use=upper_shelf)
           }
           
         }
@@ -146,6 +168,9 @@ inputServer <- function(id) {
           
           } else if(shelves == 'usf') {
             start$ahtuf = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf)
+          
+          } else if(shelves == 'lsf') {
+            start$ahtlf = c(c=c_prov, t0=t0_prov, d=d_prov, use=upper_shelf)
           }
         }
         
@@ -158,6 +183,9 @@ inputServer <- function(id) {
             
           } else if(shelves == 'usf') {
             start$aburuf = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf) 
+          
+          } else if(shelves == 'lsf') {
+            start$aburlf = c(k=k_prov, t0=t0_prov, m=m_prov, use=upper_shelf) 
           }
         }
         
@@ -170,6 +198,9 @@ inputServer <- function(id) {
             
           } else if(shelves == 'usf') {
             start$kohuf = c(c=ck_prov, DBTT=t0_prov, lse=lower_shelf)
+          
+          } else if(shelves == 'lsf') {
+            start$kohlf = c(c=ck_prov, DBTT=t0_prov, use=lower_shelf)
           }
         }
         
@@ -182,6 +213,9 @@ inputServer <- function(id) {
             
           } else if(shelves == 'usf') {
             start$akohuf = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf)
+          
+          } else if(shelves == 'lsf') {
+            start$akohlf = c(c=ck_prov, t0=dbtt, p=p_prov, use=lower_shelf)
           }
         }
 
@@ -191,15 +225,14 @@ inputServer <- function(id) {
         yy = dataset$y
         nn = length(yy)
         n.new = 20
+        
         fit = as.numeric(input$response_type)
-
-        # if (fit==1) {
-        #   yval = c(28,41)  # Absorbed energy values of interest to nuclear community
-        # } else if (fit==2) {
-        #   yval = 0.89      # Lateral expansion value of interest to nuclear community
-        # } else if (fit==3) {
-        #   yval = 50        # Shear Fracture Appearance
-        # }
+        
+        if(fit < 4) {
+          yvar_name = c('KV (J)','LE (mm)','SFA (%)')[fit]
+        } else {
+          yvar_name = input$custom_param
+        }
         
         if(input$num_temps > 0) {
           yval = as.numeric(c(input$respval1,input$respval2,input$respval3)[1:input$num_temps])
@@ -223,14 +256,13 @@ inputServer <- function(id) {
           uls = (lbb - laa)/sqrt(12)
           uus = 0.05*upper_shelf
           
-        } else if (fit == 3) {
-          #upper_shelf = 100
-          #lower_shelf = 0
+        } else if (fit %in% c(3,4)) {
           laa = 0
           lbb = 0
           uls = 0
           uus = 0
-        }
+        
+        }  
         
         
         # create new temperature values for plotting
@@ -281,7 +313,9 @@ inputServer <- function(id) {
                           conf_level = conf_level,
                           alpha = 1 - conf_level,
                           start = start,
-                          shelves=shelves)
+                          shelves=shelves,
+                          yvar_name=yvar_name)
+        
         
         computedResults = list(mstats=mstats,results=results,other_vars=other_vars)
         

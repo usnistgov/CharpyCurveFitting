@@ -4,6 +4,7 @@ library(tidyverse)
 library(minpack.lm)
 library(ggplot2)
 library(pracma)
+library(truncnorm)
 
 source('R/inputModule.R')
 source('R/plotModules.R')
@@ -22,9 +23,7 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
         mainPanel(
             tabsetPanel(
                 tabPanel('Regression Results', 
-                         plotFitsUI('fits_and_metrics'),
-                         hr(),
-                         plotCoefsTableUI('coef_table')),
+                         plotFitsUI('fits_and_metrics')),
                 tabPanel('Diagnostic Plots', 
                          plotResidsUI('resids'))
             )
@@ -39,8 +38,6 @@ server <- function(input, output, session) {
     plotFitsServer('fits_and_metrics',computedResults)
     
     plotResidsServer('resids',computedResults)
-    
-    plotCoefsTableServer('coef_table',computedResults)
     
 }
 

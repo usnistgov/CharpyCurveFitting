@@ -395,6 +395,7 @@ nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
 
   prval = pfun(mod,res,temp,fun,lower_shelf,upper_shelf)
   resid = yy - prval
+  resids_to_use = resid
 
 # generate standardized residuals from nls fit (Raizoshams, 2009)
 # https://stackoverflow.com/questions/39167204/in-r-how-does-one-extract-the-hat-projection-influence-matrix-or-values-from-an
@@ -408,13 +409,15 @@ nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
     Hflag = FALSE
     rmse = sqrt( sum(resid^2) / (length(yy) - npar) ) 
     stres = resid / (rmse*sqrt(1-diag(H)))
+    resids_to_use = stres
   }
 
 
 # Shapiro-Wilk test of normality
-  stest = shapiro.test(resid)
+  stest = shapiro.test(resids_to_use)
   slab = paste("Shapiro-Wilk Test: W = ", round(stest$statistic,2), " p = ", 
                round(stest$p.value,2), sep="")
+  
 
 # generate panel
   par(mfrow=c(2,2), cex=1.2, mgp=c(1.75, 0.75, 0), cex.main=1.2,
@@ -445,8 +448,8 @@ nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit){
        main="Lag Plot", col="red")
 
 # panel #4
-  qqnorm(resid, col="blue", sub=slab)
-  qqline(resid, col="red", lwd=2)
+  qqnorm(resids_to_use, col="blue", sub=slab)
+  qqline(resids_to_use, col="red", lwd=2)
 
 # main title
 

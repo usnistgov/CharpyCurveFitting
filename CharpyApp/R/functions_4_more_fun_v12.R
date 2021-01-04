@@ -212,7 +212,7 @@ pfun = function(mod,res,temp,fun,lower_shelf,upper_shelf){
 # function to perform model fitting
 fitmod = function(mod,upper_shelf,lower_shelf,yy,temp,fun,start,fit){
 
-  print(mod)
+  #print(mod)
   nn = length(yy)
   npar = length(start)
   lims = limits(mod,npar,fit)
@@ -1514,11 +1514,11 @@ dbttfun = function(mod,res,bsres,alpha){
   zz = matrix(unlist(bsres[1]), ncol=ncols, nrow=nbs, byrow=FALSE)
 
 # compute dbtt and se(dbtt)
-  if (i %in% c("aburf","aburuf","abur","aburlf")){
+  if (mod %in% c("aburf","aburuf","abur","aburlf")){
       dbtt = coef(res)[2] - (1/coef(res)[1])*log( 0.5^(-1/coef(res)[3]) - 1)     
       sedbtt = sd(zz[,2] - (1/zz[,1])*log( 0.5^(-1/zz[,3]) - 1))
 
-  } else if (i %in% c("akohf","akohuf","akoh","akohlf")){
+  } else if (mod %in% c("akohf","akohuf","akoh","akohlf")){
       dbtt1 = coef(res)[2] + (2*coef(res)[1]/(1+coef(res)[3]))*log((1+coef(res)[3])/2)
       se1 = sd(zz[,2] + (2*zz[,1]/(1+zz[,3]))*log((1+zz[,3])/2))
       dbtt2 = coef(res)[2] - (2*coef(res)[1]*coef(res)[3]/(1+coef(res)[3]))*
@@ -1527,6 +1527,11 @@ dbttfun = function(mod,res,bsres,alpha){
               log( (1+zz[,3]) / (2*zz[,3]) )
       dbtt = ifelse( (dbtt1+dbtt2)/2 <= coef(res)[2], dbtt1, dbtt2)
       sedbtt = ifelse( (dbtt1+dbtt2)/2 <= coef(res)[2], se1, se2)    
+  
+  } else if (grepl('(^ht)|(^aht)|(^koh)',mod,ignore.case = T)) {
+    
+    return(NULL)
+    
   }
 
 # compute confidence intervals for dbtt
@@ -1536,9 +1541,9 @@ dbttfun = function(mod,res,bsres,alpha){
   output = as.data.frame(cbind(round(dbtt,4), round(sedbtt,4),
                                round(cilo,4), round(ciup,4)))
   names(output) = c("Estimate", "S.E.", "Lower CI", "Upper CI")
+  output = cbind(data.frame("Model"=mod),output)
   return(output)
 
-  return()
 } # end of dbttfun
 
 

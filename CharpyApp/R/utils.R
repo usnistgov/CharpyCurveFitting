@@ -8,6 +8,7 @@ compute_boot <- function(computedResults) {
   bout = list()
   coef_ints = list()
   tpout = list()
+  dbtt = list()
   
   withProgress(message = "Running Bootstrap Iterations", value = 0, {
     
@@ -52,6 +53,21 @@ compute_boot <- function(computedResults) {
                                                    results,
                                                    model_name)
       
+      #browser()
+      
+      if(grepl('(^ht)|(^aht)|(^koh)',model_name,ignore.case = T)) {
+        cints = coef_ints[[model_name]]
+        t0_row = which(names(other_vars$start[[model_name]]) %in% c('t0','DBTT'))
+        dbttout = round(cints[t0_row,],4)
+        names(dbttout) = c("Estimate", "S.E.", "Lower CI", "Upper CI")
+        rownames(dbttout) = NULL
+        dbttout = cbind(data.frame("Model"=model_name),dbttout)
+        dbtt[[model_name]] = dbttout
+      } else {
+        dbtt[[model_name]] = dbttfun(model_name,res,bsres,1 - other_vars$conf_level)
+      }
+      
+      
       if(any(is.na(other_vars$yval))) {
         # do nothing
       } else {
@@ -81,7 +97,7 @@ compute_boot <- function(computedResults) {
   bout = bind_rows(bout)
   bout$model = rep(mod_name,each=nrows_each)
   
-  return(list('bout'=bout,'coef_ints'=coef_ints, 'tpout'=tpout))
+  return(list('bout'=bout,'coef_ints'=coef_ints, 'tpout'=tpout, 'dbtt'=dbtt))
 
 }
 

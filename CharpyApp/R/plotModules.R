@@ -20,7 +20,11 @@ plotFitsUI <- function(id){
     DT::dataTableOutput(ns('coefs_table')),
     br(),
     hr(),
-    h3("Characteristic Temperatures",align='center'),
+    h3('DBTT',align='center'),
+    DT::dataTableOutput(ns('dbtt_table')),
+    br(),
+    hr(),
+    h3("Additional Characteristic Temperatures",align='center'),
     DT::dataTableOutput(ns('tpout'))
     
   )
@@ -161,17 +165,6 @@ plotFitsServer <- function(id,computedResults) {
           return(NULL)
         }
         
-        # get coefficient names
-        # if (input$which_model %in% c("ht","aht","abur","koh","akoh")){
-        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'sigma')
-        #   
-        # } else if (input$which_model %in% c("htf","ahtf","aburf","kohf","akohf")){
-        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'Lower shelf','Upper shelf','sigma')
-        #   
-        # } else {
-        #   params = c(names(computedResults()$other_vars$start[[input$which_model]]),'Upper shelf','sigma')
-        # }
-        
         other_vars = computedResults()$other_vars
         
         num_mods = length(other_vars$mod2)
@@ -183,7 +176,7 @@ plotFitsServer <- function(id,computedResults) {
           
           params = names(other_vars$start[[ mod_names[ii] ]])
           this_df = data.frame(params = params)
-          coef_ints = round(computedResults()$coef_ints[[ mod_names[ii] ]],3)
+          coef_ints = round(computedResults()$coef_ints[[ mod_names[ii] ]],4)
           
           this_df = cbind(mod_names[ii],this_df,coef_ints[1:nrow(this_df),])
           names(this_df) = c("Model","Coefficient","Estimate","S.E.","Lower Cl", "Upper Cl")
@@ -193,15 +186,31 @@ plotFitsServer <- function(id,computedResults) {
         }
         
         outdf = bind_rows(outlist)
+        
+        # capitalize / un-capitalize specific coefficient names
         outdf$Coefficient = toupper(outdf$Coefficient)
         inds_to_lwr = outdf$Coefficient %in% c('K','M','P')
         outdf$Coefficient[inds_to_lwr] = tolower(outdf$Coefficient[inds_to_lwr])
+        
+        # fix model names, e.g. htuf -> HT
         outdf$Model = correct_names(outdf$Model)
+        
+        the_rows = (outdf$Model %in% c("HT","AHT","ACT")) & (outdf$Coefficient == 'T0')
+        outdf[the_rows,'Coefficient'] = 'DBTT'
+        
         outdf
         
         
         
       }, options = list(searching=FALSE, paging=FALSE))
+      
+      output$dbtt_table <- DT::renderDataTable({
+
+        outdf = dplyr::bind_rows(computedResults()$dbtt)
+        outdf$Model = correct_names(outdf$Model)
+        outdf
+        
+      },options = list(searching=FALSE, paging=FALSE))
       
     }
   )

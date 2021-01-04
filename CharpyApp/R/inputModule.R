@@ -39,7 +39,7 @@ inputUI <- function(id) {
     uiOutput(ns('shelf_selections')),
     hr(),
     
-    selectInput(ns('num_temps'),"Number of Characteristic Temperatures to be Estimated",
+    selectInput(ns('num_temps'),"Number Additional Characteristic Temperatures to be Estimated",
                 choices = 0:3, selected=0),
     
     conditionalPanel(condition = "input.num_temps >= 1", {
@@ -271,7 +271,7 @@ inputServer <- function(id) {
         names(newt) = c("temp")
         
         # Jolene's code:
-        cat('fitting')
+        # cat('fitting')
         fitres = fits(mod,start,lower_shelf,upper_shelf,yy,temp,fit)
         mstats = fitres[[2]]
         results = fitres[[1]]
@@ -324,6 +324,7 @@ inputServer <- function(id) {
           computedResults$boots = boots_res$bout
           computedResults$coef_ints = boots_res$coef_ints
           computedResults$tpout = boots_res$tpout
+          computedResults$dbtt = boots_res$dbtt
         }
         
         return(computedResults)

@@ -118,8 +118,8 @@ inputServer <- function(id) {
           write.csv(template_file, file, row.names = FALSE)
         }
       )
-
       
+
       userInputs <- eventReactive(input$goButton, {
         # format user inputs
         req(input$datafile)

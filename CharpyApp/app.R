@@ -10,6 +10,7 @@ source('R/inputModule.R')
 source('R/plotModules.R')
 source('R/utils.R')
 source('R/functions_4_more_fun_v12.R')
+source('R/downloadAllModule.R')
 
 ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
 
@@ -23,7 +24,8 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
         mainPanel(
             tabsetPanel(
                 tabPanel('Regression Results', 
-                         plotFitsUI('fits_and_metrics')),
+                         plotFitsUI('fits_and_metrics'),
+                         downloadAllUI('download')),
                 tabPanel('Diagnostic Plots', 
                          plotResidsUI('resids'))
             )
@@ -35,9 +37,11 @@ server <- function(input, output, session) {
 
     computedResults <- inputServer('start')
     
-    plotFitsServer('fits_and_metrics',computedResults)
+    fits_info <- plotFitsServer('fits_and_metrics',computedResults)
     
     plotResidsServer('resids',computedResults)
+    
+    downloadAllServer('download',computedResults,fits_info)
     
 }
 

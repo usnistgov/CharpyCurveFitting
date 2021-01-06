@@ -5,6 +5,7 @@ inputUI <- function(id) {
   
   tagList(
     fileInput(ns('datafile'),'Upload csv file',accept=c('.csv','.txt')),
+    downloadButton(ns('download'), label = "Download Template File", class = NULL),
     hr(),
     sliderInput(ns('conf_level'),'Confidence Level for Plots',
                 min=.80,max=.99,value=.95,step=.01),
@@ -105,6 +106,18 @@ inputServer <- function(id) {
         )
         
       })
+      
+      template_file = readr::read_csv('./data/sample.csv')
+      
+      output$download <- downloadHandler(
+        filename = function() {
+          paste("template_file.csv")
+        },
+        
+        content = function(file) {
+          write.csv(template_file, file, row.names = FALSE)
+        }
+      )
 
       
       userInputs <- eventReactive(input$goButton, {

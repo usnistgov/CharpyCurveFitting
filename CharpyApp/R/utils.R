@@ -156,8 +156,6 @@ compute_boot_coefs <- function(bbeta,other_vars,results,model_name) {
   lower_perc = apply(bbeta,2,function(x) quantile(x,alpha/2))
   upper_perc = apply(bbeta,2,function(x) quantile(x,1-alpha/2))
   
-  
-  
   #lowers = ests - qt(1 - alpha/2,dof)*SEs
   #uppers = ests + qt(1 - alpha/2,dof)*SEs
   

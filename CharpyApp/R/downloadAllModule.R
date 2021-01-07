@@ -3,6 +3,7 @@ downloadAllUI <- function(id) {
   tagList(
     br(),
     downloadButton(ns('download_all'),'Download All Results'),
+    br(),
     br()
   )
   
@@ -15,18 +16,25 @@ downloadAllServer <- function(id,computedResults,fits_info) {
       
       output$download_all <- downloadHandler(
         filename = function() {
-          paste("results.pdf")
+          paste("ResultsDownload.pdf")
         },
         
         content = function(file) {
           
-          pdf("./data/results.pdf")
-          p = plot_fits(computedResults,fits_info()$fits_to_show,fits_info()$show_CIs)
-          print(p)
-          #plot(rnorm(100))
-          dev.off()
+          plot_fits_out = plot_fits(computedResults,fits_info()$fits_to_show,fits_info()$show_CIs)
+          coef_table_out = create_coefs_table(computedResults)
+          fit_metrics_table_out = create_fit_metrics_table(computedResults)
+          dbtt_table_out = create_dbtt_table(computedResults)
           
-          file.copy('./data/results.pdf',file)
+          withProgress(message = 'Preparing file for download...', {
+            rmarkdown::render("./markdown/ResultsDownload.Rmd", 
+                              params = list(plot_fits_out=plot_fits_out,
+                                            coef_table_out = coef_table_out,
+                                            fit_metrics_table_out = fit_metrics_table_out,
+                                            dbtt_table_out = dbtt_table_out))
+          })
+          
+          file.copy('./markdown/ResultsDownload.pdf',file)
           
         }
       )

@@ -1,0 +1,37 @@
+---
+title: "Transition Curve Fitting Tool: Results"
+output: pdf_document
+params:
+  plot_fits_out: NA
+  coef_table_out: NA
+  fit_metrics_table_out: NA
+  dbtt_table_out: NA
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+### Fitted Plot
+```{r}
+plot_fits_out
+```
+
+
+### Coefficients Table
+
+```{r}
+coef_table_out
+```
+
+### Fit Metrics Table
+```{r}
+fit_metrics_table_out
+```
+
+### DBTT Table
+```{r}
+dbtt_table_out
+```

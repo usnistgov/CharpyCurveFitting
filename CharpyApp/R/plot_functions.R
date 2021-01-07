@@ -75,3 +75,64 @@ plot_fits <- function(computedResults,fits_to_show,show_CIs) {
   
   p
 }
+
+
+create_coefs_table <- function(computedResults) {
+  
+  other_vars = computedResults()$other_vars
+  
+  num_mods = length(other_vars$mod2)
+  mod_names = other_vars$mod2
+  
+  outlist = vector(mode='list',length=num_mods)
+  
+  for(ii in 1:num_mods) {
+    
+    params = names(other_vars$start[[ mod_names[ii] ]])
+    this_df = data.frame(params = params)
+    coef_ints = round(computedResults()$coef_ints[[ mod_names[ii] ]],4)
+    
+    this_df = cbind(mod_names[ii],this_df,coef_ints[1:nrow(this_df),])
+    names(this_df) = c("Model","Coefficient","Estimate","S.E.","Lower Cl", "Upper Cl")
+    
+    outlist[[ii]] = this_df
+    
+  }
+  
+  outdf = bind_rows(outlist)
+  
+  # capitalize / un-capitalize specific coefficient names
+  outdf$Coefficient = toupper(outdf$Coefficient)
+  inds_to_lwr = outdf$Coefficient %in% c('K','M','P')
+  outdf$Coefficient[inds_to_lwr] = tolower(outdf$Coefficient[inds_to_lwr])
+  
+  # fix model names, e.g. htuf -> HT
+  outdf$Model = correct_names(outdf$Model)
+  
+  the_rows = (outdf$Model %in% c("HT","AHT","ACT")) & (outdf$Coefficient == 'T0')
+  outdf[the_rows,'Coefficient'] = 'DBTT'
+  
+  outdf
+  
+}
+
+
+create_fit_metrics_table <- function(computedResults) {
+  mstats = computedResults()$mstats
+  
+  outdf = mstats[,2:6]
+  outdf$conv = ifelse(outdf$conv %in% c(1,2,3),'Yes','No')
+  names(outdf) = c('Model','RMSE','AIC','BIC','Converged?')
+  outdf$Model = correct_names(outdf$Model)
+  
+  outdf
+}
+
+
+create_dbtt_table <- function(computedResults) {
+  
+  outdf = dplyr::bind_rows(computedResults()$dbtt)
+  outdf$Model = correct_names(outdf$Model)
+  outdf
+  
+}

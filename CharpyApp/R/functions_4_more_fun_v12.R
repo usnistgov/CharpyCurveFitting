@@ -423,7 +423,9 @@ nlsres = function(yy,temp,mod,res,fun,lower_shelf,upper_shelf,fit,for_markdown=F
   if(for_markdown) {
     #par(mfrow=c(2,2), cex=.8, mgp=c(1.75, 0.75, 0), cex.main=1,
     #    mar=c(1.5, 1.5, 1.5 ,1.5), oma = c(1.5, 1.5, 1.5, 1.5))
-    par(mfrow=c(2,2),pin=c(2,1.5),mai=c(.4,.4,.4,.4))
+    #par(mfrow=c(2,2),pin=c(2,1.5),mai=c(.4,.4,.4,.4))
+    par(mfrow=c(2,2))
+    
   } else {
     par(mfrow=c(2,2), cex=1.2, mgp=c(1.75, 0.75, 0), cex.main=1.2,
         mar=c(4, 3, 3 ,3), oma = c(1, 1, 1, 1))

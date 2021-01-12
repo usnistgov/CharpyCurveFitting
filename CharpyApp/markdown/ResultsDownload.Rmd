@@ -19,45 +19,52 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
-### Fitted Plot
+# Fitted Plot
 ```{r}
 plot_fits_out
 ```
 
 \newpage
-### Coefficients Table
+
+# Coefficients Table
 ```{r}
 knitr::kable(coef_table_out)
 ```
 
-### Fit Metrics Table
+# Fit Metrics Table
 ```{r}
 knitr::kable(fit_metrics_table_out)
 ```
 
 
-### DBTT Table
+# DBTT Table
 ```{r}
 knitr::kable(dbtt_table_out)
 ```
 
 
-### Other Characteristic Temperatures
+# Other Characteristic Temperatures
 ```{r}
 if(!is.null(plot_tpout_out)) {
   knitr::kable(plot_tpout_out)
 } else {
-  print("No additional characteristic temperatures selected.")
+  cat("No additional characteristic temperatures selected.")
 }
 
 ```
 
+\newpage
 
-### Residuals
-```{r}
+# Residuals
+```{r results='asis'}
 models = names(results)
 
 for(ii in 1:length(models)) {
+  cat('### Model: ',correct_names(models[ii]))
+  cat('\n\n')
   plot_resids_md(other_vars,results,models[ii])
+  cat('\n\n')
+  cat('\n\n\\newpage')
+  cat('\n\n')
 }
 ```

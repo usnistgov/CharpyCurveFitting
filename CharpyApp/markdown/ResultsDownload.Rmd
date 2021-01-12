@@ -6,6 +6,11 @@ params:
   coef_table_out: NA
   fit_metrics_table_out: NA
   dbtt_table_out: NA
+  plot_tpout_out: NA
+  plot_resids: NA 
+  other_vars: NA
+  results: NA
+
   
 ---
 
@@ -19,19 +24,40 @@ knitr::opts_chunk$set(echo = FALSE)
 plot_fits_out
 ```
 
-
+\newpage
 ### Coefficients Table
-
 ```{r}
-coef_table_out
+knitr::kable(coef_table_out)
 ```
 
 ### Fit Metrics Table
 ```{r}
-fit_metrics_table_out
+knitr::kable(fit_metrics_table_out)
 ```
+
 
 ### DBTT Table
 ```{r}
-dbtt_table_out
+knitr::kable(dbtt_table_out)
+```
+
+
+### Other Characteristic Temperatures
+```{r}
+if(!is.null(plot_tpout_out)) {
+  knitr::kable(plot_tpout_out)
+} else {
+  print("No additional characteristic temperatures selected.")
+}
+
+```
+
+
+### Residuals
+```{r}
+models = names(results)
+
+for(ii in 1:length(models)) {
+  plot_resids_md(other_vars,results,models[ii])
+}
 ```

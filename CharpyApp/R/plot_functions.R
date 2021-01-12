@@ -136,3 +136,50 @@ create_dbtt_table <- function(computedResults) {
   outdf
   
 }
+
+
+plot_tpout <- function(computedResults) {
+  if(length(computedResults()$tpout) == 0) {
+    return(NULL)
+  }
+  
+  outdf = dplyr::bind_rows(computedResults()$tpout)
+  outdf = cbind( rep(names(computedResults()$tpout),each=length(computedResults()$other_vars$yval)) ,outdf)
+  names(outdf) = c('Model','Ref Value','Temperature Est', 'SE','Lower Cl','Upper Cl')
+  outdf$Model = correct_names(outdf$Model)
+  outdf
+}
+
+
+plot_resids <- function(computedResults,model_name) {
+  other_vars = computedResults()$other_vars
+  res = computedResults()$results[[model_name]]
+  if(is.null(res)) {
+    return(NULL)
+  }
+  fun = get(model_name)
+  nlsres(other_vars$yy,other_vars$temp,model_name,res,fun,other_vars$lower_shelf,other_vars$upper_shelf,other_vars$fit)
+}
+
+plot_resids_md <- function(other_vars,results,model_name) {
+  
+  res = results[[model_name]]
+  
+  if(is.null(res)) {
+    return(NULL)
+  }
+  
+  fun = get(model_name)
+  nlsres(other_vars$yy,
+         other_vars$temp,
+         model_name,
+         res,
+         fun,
+         other_vars$lower_shelf,
+         other_vars$upper_shelf,
+         other_vars$fit,
+         for_markdown=TRUE)
+}
+
+
+

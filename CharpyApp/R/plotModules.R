@@ -59,15 +59,7 @@ plotFitsServer <- function(id,computedResults) {
       
       output$tpout <- DT::renderDataTable({
         
-        if(length(computedResults()$tpout) == 0) {
-          return(NULL)
-        }
-      
-        outdf = dplyr::bind_rows(computedResults()$tpout)
-        outdf = cbind( rep(names(computedResults()$tpout),each=length(computedResults()$other_vars$yval)) ,outdf)
-        names(outdf) = c('Model','Ref Value','Temperature Est', 'SE','Lower Cl','Upper Cl')
-        outdf$Model = correct_names(outdf$Model)
-        outdf
+        plot_tpout(computedResults)
         
       }, options = list(searching=FALSE, paging=FALSE))
       
@@ -97,6 +89,7 @@ plotFitsServer <- function(id,computedResults) {
       },options = list(searching=FALSE, paging=FALSE))
       
       fits_info = reactive({
+        # to pass to r markdown document
         list(fits_to_show = input$fits_to_show, show_CIs = input$show_CIs)
       })
       
@@ -138,14 +131,8 @@ plotResidsServer <- function(id,computedResults) {
       
       output$nlsres_plot = renderPlot({
         req(input$which_model)
-        other_vars = computedResults()$other_vars
-        model_name = input$which_model
-        res = computedResults()$results[[model_name]]
-        if(is.null(res)) {
-          return(NULL)
-        }
-        fun = get(model_name)
-        nlsres(other_vars$yy,other_vars$temp,model_name,res,fun,other_vars$lower_shelf,other_vars$upper_shelf,other_vars$fit)
+        
+        plot_resids(computedResults,input$which_model)
       })
       
     }

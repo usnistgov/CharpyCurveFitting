@@ -22,12 +22,12 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
         ),
 
         mainPanel(
-            tabsetPanel(
+            tabsetPanel(id='thePanel',
                 tabPanel('Regression Results', 
-                         plotFitsUI('fits_and_metrics'),
-                         downloadAllUI('download')),
+                         plotFitsUI('fits_and_metrics')),
                 tabPanel('Diagnostic Plots', 
                          plotResidsUI('resids'))
+
             )
         )
     )
@@ -36,6 +36,15 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
 server <- function(input, output, session) {
 
     computedResults <- inputServer('start')
+    
+    observeEvent(computedResults()$other_vars, {
+        appendTab(inputId='thePanel',
+                  tabPanel('Download',
+                           br(),
+                           h5(paste("Click the button to generate a pdf file of all tables and plots",
+                                    "displayed throughout the application.")),
+                           downloadAllUI('download')))
+    })
     
     fits_info <- plotFitsServer('fits_and_metrics',computedResults)
     

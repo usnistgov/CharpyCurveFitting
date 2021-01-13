@@ -2,7 +2,7 @@ downloadAllUI <- function(id) {
   ns = NS(id)
   tagList(
     br(),
-    downloadButton(ns('download_all'),'Download All Results'),
+    uiOutput(ns('the_button')),
     br(),
     br()
   )
@@ -13,6 +13,13 @@ downloadAllServer <- function(id,computedResults,fits_info) {
   moduleServer(
     id,
     function(input,output,session) {
+      
+      output$the_button <- renderUI({
+        if(is.null(computedResults()$results)) {
+          return(NULL)
+        }
+        downloadButton(session$ns('download_all'),'Download All Results')
+      })
       
       output$download_all <- downloadHandler(
         filename = function() {

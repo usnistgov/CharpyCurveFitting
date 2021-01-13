@@ -67,7 +67,6 @@ compute_boot <- function(computedResults) {
         dbtt[[model_name]] = dbttfun(model_name,res,bsres,1 - other_vars$conf_level)
       }
       
-      
       if(any(is.na(other_vars$yval))) {
         # do nothing
       } else {

@@ -38,6 +38,9 @@ server <- function(input, output, session) {
     computedResults <- inputServer('start')
     
     observeEvent(computedResults()$other_vars, {
+        
+        try(removeTab(inputId='thePanel',target='Download'))
+        
         appendTab(inputId='thePanel',
                   tabPanel('Download',
                            br(),

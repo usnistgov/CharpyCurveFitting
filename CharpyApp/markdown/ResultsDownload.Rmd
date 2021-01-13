@@ -56,7 +56,7 @@ if(!is.null(plot_tpout_out)) {
 \newpage
 
 # Residuals
-```{r results='asis'}
+```{r results='asis',fig.height=7}
 models = names(results)
 
 for(ii in 1:length(models)) {

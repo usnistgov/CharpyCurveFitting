@@ -62,7 +62,7 @@ inputUI <- function(id) {
     conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht')", {
       tagList(
         h5('Starting Values for Hyperbolic Tangent Models'),
-        numericInput(ns('c_prov'),'C',50),
+        numericInput(ns('c_prov'),'C (\u00B0C)',50),
         numericInput(ns('d_prov'),'D',.0001),
         numericInput(ns('t0_prov'),'DBTT (\u00B0C)',10))
     },ns=ns),
@@ -75,7 +75,7 @@ inputUI <- function(id) {
     conditionalPanel(condition = "input.which_models.includes('koh') || input.which_models.includes('akoh')", {
       tagList(
         h5('Starting Values for Kohout Models'),
-        numericInput(ns('ck_prov'),'C',20),
+        numericInput(ns('ck_prov'),'C (\u00B0C)',20),
         numericInput(ns('p_prov'),'p',2),
         numericInput(ns('dbtt'),'T0 (\u00B0C)',-5))
     },ns=ns),

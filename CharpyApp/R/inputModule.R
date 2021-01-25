@@ -57,7 +57,7 @@ inputUI <- function(id) {
     hr(),
     
     selectInput(ns('nsim'),"Number Bootstrap Iterations per Model",
-                choices = list('100 (test run)'=100,'1000 (full run)'=1000)),
+                choices = list('1000 (full run)'=1000, '100 (test run)'=100)),
     hr(),
     conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht')", {
       tagList(

@@ -85,13 +85,25 @@ inputServer <- function(id) {
           return(NULL)
         }
         
+        req(input$response_type)
+        
+        fit = as.numeric(input$response_type)
+        
+        if(fit < 4) {
+          yvar_name = c('KV (J)','LE (mm)','SFA (%)')[fit]
+          
+          yvar_name = str_split(yvar_name,' ')[[1]][2]
+        } else {
+          yvar_name = input$custom_param
+        }
+        
         dataset = read_csv(input$datafile$datapath)
         
         tagList(
           h5("Specify lower and upper shelves"),
           h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
-          numericInput(session$ns('lower_shelf'),"Lower Shelf",min(dataset$y)),
-          numericInput(session$ns('upper_shelf'),"Upper Shelf",max(dataset$y))
+          numericInput(session$ns('lower_shelf'),paste("Lower Shelf",yvar_name),min(dataset$y)),
+          numericInput(session$ns('upper_shelf'),paste("Upper Shelf",yvar_name),max(dataset$y))
         )
         
       })

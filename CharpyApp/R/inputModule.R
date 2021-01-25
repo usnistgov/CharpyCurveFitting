@@ -40,21 +40,8 @@ inputUI <- function(id) {
     uiOutput(ns('shelf_selections')),
     hr(),
     
-    selectInput(ns('num_temps'),"Number Additional Characteristic Temperatures to be Estimated",
-                choices = 0:3, selected=0),
-    
-    conditionalPanel(condition = "input.num_temps >= 1", {
-      numericInput(ns('respval1'),'Response Value 1',0,min=0,max=100)
-    },ns=ns),
-    
-    conditionalPanel(condition = "input.num_temps >= 2", {
-      numericInput(ns('respval2'),'Response Value 2',0,min=0,max=100)
-    },ns=ns),
-    
-    conditionalPanel(condition = "input.num_temps == 3", {
-      numericInput(ns('respval3'),'Response Value 3',0,min=0,max=100)
-    },ns=ns),
-    hr(),
+    uiOutput(ns('additional_temps')),
+    br(),
     
     selectInput(ns('nsim'),"Number Bootstrap Iterations per Model",
                 choices = list('1000 (full run)'=1000, '100 (test run)'=100)),
@@ -90,6 +77,8 @@ inputServer <- function(id) {
     id,
     function(input,output,session){
       
+      template_file = readr::read_csv('./data/sample.csv')
+      
       output$shelf_selections <- renderUI({
         
         if(is.null(input$datafile)) {
@@ -107,7 +96,44 @@ inputServer <- function(id) {
         
       })
       
-      template_file = readr::read_csv('./data/sample.csv')
+      output$additional_temps <- renderUI({
+        
+        req(input$response_type)
+        
+        fit = as.numeric(input$response_type)
+        
+        if(fit < 4) {
+          yvar_name = c('KV (J)','LE (mm)','SFA (%)')[fit]
+          
+          yvar_name = str_split(yvar_name,' ')[[1]][2]
+        } else {
+          yvar_name = input$custom_param
+        }
+        
+        tagList(
+          selectInput(session$ns('num_temps'),"Number Additional Characteristic Temperatures to be Estimated",
+                      choices = 0:3, selected=0),
+          
+          conditionalPanel(condition = "input.num_temps >= 1", {
+            numericInput(session$ns('respval1'),
+                         paste('Response Value 1',yvar_name),
+                         0,min=0,max=100)
+          },ns=session$ns),
+          
+          conditionalPanel(condition = "input.num_temps >= 2", {
+            numericInput(session$ns('respval2'),
+                         paste('Response Value 2',yvar_name),
+                         0,min=0,max=100)
+          },ns=session$ns),
+          
+          conditionalPanel(condition = "input.num_temps == 3", {
+            numericInput(session$ns('respval3'),
+                         paste('Response Value 3',yvar_name),
+                         0,min=0,max=100)
+          },ns=session$ns)
+        )
+
+      })
       
       output$download <- downloadHandler(
         filename = function() {

@@ -27,7 +27,7 @@ inputUI <- function(id) {
                                 'Arctangent (ACT)',
                                 'Kohout (KHT)'),
                   choiceValues=c('ht','aht','abur','koh','akoh')),
-    
+    hr(),
     selectInput(ns('lower_shelf_option'),
                 'Lower Shelf:',
                 choices=c('Fixed','Not Fixed'),
@@ -45,8 +45,8 @@ inputUI <- function(id) {
     uiOutput(ns('additional_temps')),
     br(),
     
-    selectInput(ns('nsim'),"Number Bootstrap Iterations per Model",
-                choices = list('1000 (full run)'=1000, '100 (test run)'=100)),
+    #selectInput(ns('nsim'),"Number Bootstrap Iterations per Model",
+    #            choices = list('1000 (full run)'=1000, '100 (test run)'=100)),
     hr(),
     conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht')", {
       tagList(
@@ -165,7 +165,48 @@ inputServer <- function(id) {
         req(input$datafile)
         start = list()
         
+
         dataset = read_csv(input$datafile$datapath)
+        
+        validate(
+          need(!is.null(dataset$temperature),
+               "No column named 'temperature'."),
+          
+          need(!is.null(dataset$y),
+               "No column named 'y'."),
+          
+          need(length(dataset$y) == length(dataset$temperature),
+               "'temperature' and 'y' different lengths"),
+         
+          need(length(dataset$y) > 6,
+               "At least 7 observations (rows in .csv file) needed to fit models."),
+          
+          need(sum(is.na(c(dataset$y,dataset$temperature))) < 1, 
+               "Missing values detected in dataset."),
+          
+          need(sum(c(dataset$y,dataset$temperature) == '') < 1, 
+               "Empty cells detected in dataset."),
+          
+          need(is.numeric(dataset$y) && is.numeric(dataset$temperature),
+               "Non-numeric values detected in dataset."),
+          
+          need(length(input$which_models) > 0,
+               "No models selected." ),
+          
+          need(as.numeric(c(input$c_prov,input$d_prov,input$t0_prov,
+                            input$k_prov,input$m_prov,input$ck_prov,
+                            input$p_prov,input$dbtt,
+                            input$upper_shelf,input$lower_shelf)) %>%
+               is.numeric(),
+               "Non-numeric parameters detected."), 
+          
+          need(!any(is.na(as.numeric(c(input$c_prov,input$d_prov,input$t0_prov,
+                                       input$k_prov,input$m_prov,input$ck_prov,
+                                       input$p_prov,input$dbtt,
+                                       input$upper_shelf,input$lower_shelf)))),
+               "Empty parameter fields detected.")
+        )
+        
 
         c_prov = as.numeric(input$c_prov)
         d_prov = as.numeric(input$d_prov)
@@ -178,7 +219,7 @@ inputServer <- function(id) {
         
         upper_shelf = as.numeric(input$upper_shelf)
         lower_shelf = as.numeric(input$lower_shelf)
-        nsim = as.numeric(input$nsim)
+        nsim = 1000
         conf_level = as.numeric(input$conf_level)
         
         shelves_in = c(input$lower_shelf_option,input$upper_shelf_option)

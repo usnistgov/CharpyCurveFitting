@@ -18,32 +18,36 @@ params:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+```{r results='asis'}
+cat(paste('# User Information:',other_vars$userID,'\n'))
+cat(paste('## Date:', Sys.Date(),'\n'))
+```
 
-# Fitted Plot
+## Fitted Plot
 ```{r}
 plot_fits_out
 ```
 
 \newpage
 
-# Coefficients Table
+## Coefficients Table
 ```{r}
 knitr::kable(coef_table_out)
 ```
 
-# Fit Metrics Table
+## Fit Metrics Table
 ```{r}
 knitr::kable(fit_metrics_table_out)
 ```
 
 
-# DBTT Table
+## DBTT Table
 ```{r}
 knitr::kable(dbtt_table_out)
 ```
 
 
-# Other Characteristic Temperatures
+## Other Characteristic Temperatures
 ```{r}
 if(!is.null(plot_tpout_out)) {
   knitr::kable(plot_tpout_out)
@@ -55,7 +59,7 @@ if(!is.null(plot_tpout_out)) {
 
 \newpage
 
-# Residuals
+## Residuals
 ```{r results='asis',fig.height=7}
 models = names(results)
 

@@ -4,6 +4,8 @@ inputUI <- function(id) {
   ns <- NS(id)
   
   tagList(
+    textInput(ns('userID'),'Data ID',placeholder="Material, Condition, Specimen Type, etc."),
+    br(),
     fileInput(ns('datafile'),'Upload csv file',accept=c('.csv','.txt')),
     downloadButton(ns('download'), label = "Download Template File", class = NULL),
     hr(),
@@ -162,6 +164,7 @@ inputServer <- function(id) {
         # format user inputs
         req(input$datafile)
         start = list()
+        
         dataset = read_csv(input$datafile$datapath)
 
         c_prov = as.numeric(input$c_prov)
@@ -365,7 +368,8 @@ inputServer <- function(id) {
                           alpha = 1 - conf_level,
                           start = start,
                           shelves=shelves,
-                          yvar_name=yvar_name)
+                          yvar_name=yvar_name,
+                          userID=input$userID)
         
         
         computedResults = list(mstats=mstats,results=results,other_vars=other_vars)

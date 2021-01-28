@@ -204,7 +204,11 @@ inputServer <- function(id) {
                                        input$k_prov,input$m_prov,input$ck_prov,
                                        input$p_prov,input$dbtt,
                                        input$upper_shelf,input$lower_shelf)))),
-               "Empty parameter fields detected.")
+               "Empty parameter fields detected."),
+          
+          need(input$lower_shelf < input$upper_shelf,
+               "Lower shelf value must be less than the upper shelf value.")
+          
         )
         
 

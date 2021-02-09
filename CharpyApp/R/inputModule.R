@@ -390,6 +390,8 @@ inputServer <- function(id) {
         mstats2 = mstats[keepid==1, 1:5]
         mod2 = as.character(mstats2$mod)
         
+        #browser()
+        
         other_vars = list(mod = mod,
                           temp = temp,
                           yy = yy,

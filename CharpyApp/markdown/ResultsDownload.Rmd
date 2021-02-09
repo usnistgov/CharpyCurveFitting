@@ -23,6 +23,41 @@ cat(paste('# User Information:',other_vars$userID,'\n'))
 cat(paste('## Date:', Sys.Date(),'\n'))
 ```
 
+
+
+```{r results='asis'}
+cat("**Starting Values for Optimization** \n\n")
+
+for(ii in 1:length(other_vars$start)) {
+  cat(paste("Model:",correct_names(names(other_vars$start)[ii])))
+  cat('\n')
+  just_vals = other_vars$start[[ii]]
+  names(just_vals) = NULL
+  print(knitr::kable(data.frame(parameter=names(other_vars$start[[ii]]),initial_value=just_vals)))
+  cat('\n')
+}
+```
+
+```{r results='asis'}
+cat('**Shelf selection**: ')
+if(other_vars$shelves == 'bsf') {
+  cat(paste("Both shelves wer set to be fixed. The upper shelf was set to be ",other_vars$upper_shelf,
+            " and the lower shelf to be ",other_vars$lower_shelf,".\n\n",sep=""))
+} else if(other_vars$shelves == 'snf') {
+    cat(paste("Both shelves were set to be not fixed.",
+              " The upper shelf was initialized to be ",other_vars$upper_shelf,
+              " and the lower shelf was initialized to be ",other_vars$lower_shelf,".\n\n",sep=""))
+} else if(other_vars$shelves == 'usf') {
+    cat(paste("The upper shelf was set to be fixed, and the lower shelf was set to be not fixed.",
+              " The upper shelf value was assumed to be ",other_vars$upper_shelf,
+              " and the lower shelf was initialized at ",other_vars$lower_shelf,".\n\n",sep=""))
+} else if(other_vars$shelves == 'lsf') {
+    cat(paste("The upper shelf was set to be not fixed, and the lower shelf was set to be fixed.",
+              " The upper shelf value was initialized at ",other_vars$upper_shelf,
+              " and the lower shelf was set to be ",other_vars$lower_shelf,".\n\n",sep=""))
+}
+```
+
 ## Fitted Plot
 ```{r}
 plot_fits_out

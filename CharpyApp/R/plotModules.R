@@ -20,11 +20,11 @@ plotFitsUI <- function(id){
     DT::dataTableOutput(ns('coefs_table')),
     br(),
     hr(),
-    h3('DBTT',align='center'),
+    h3('DBTT Table (\u00B0C)',align='center'),
     DT::dataTableOutput(ns('dbtt_table')),
     br(),
     hr(),
-    h3("Additional Characteristic Temperatures",align='center'),
+    h3("Additional Characteristic Temperatures (\u00B0C)",align='center'),
     DT::dataTableOutput(ns('tpout'))
     
   )
@@ -38,6 +38,7 @@ plotFitsServer <- function(id,computedResults) {
       output$which_fits_ui <- renderUI({
         ns <- session$ns
         mods = computedResults()$mstats$mod
+        mods = mods[mods %in% computedResults()$other_vars$mod2]
         checkboxGroupInput(ns('fits_to_show'),'Fits to Show',choices=correct_names(mods),selected=correct_names(mods))
       })
       
@@ -124,6 +125,7 @@ plotResidsServer <- function(id,computedResults) {
       output$which_model = renderUI({
         ns <- session$ns
         mods = computedResults()$mstats$mod
+        mods = mods[mods %in% computedResults()$other_vars$mod2]
         myl = as.list(mods)
         names(myl) = correct_names(mods) #e.g. 'HT':htf
         selectInput(ns('which_model'),'Model',choices=myl)

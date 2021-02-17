@@ -1536,10 +1536,9 @@ dbttfun = function(mod,res,bsres,alpha){
       se1 = sd(zz[,2] + (2*zz[,1]/(1+zz[,3]))*log((1+zz[,3])/2))
       dbtt2 = coef(res)[2] - (2*coef(res)[1]*coef(res)[3]/(1+coef(res)[3]))*
               log( (1+coef(res)[3]) / (2*coef(res)[3]) )
-      se2 = zz[,2] - (2*zz[,1]*zz[,3]/(1+zz[,3]))*
-              log( (1+zz[,3]) / (2*zz[,3]) )
+      se2 = sd(zz[,2] - (2*zz[,1]*zz[,3]/(1+zz[,3]))*log( (1+zz[,3]) / (2*zz[,3]) ))
       dbtt = ifelse( (dbtt1+dbtt2)/2 <= coef(res)[2], dbtt1, dbtt2)
-      sedbtt = ifelse( (dbtt1+dbtt2)/2 <= coef(res)[2], se1, se2)    
+      sedbtt = ifelse( (dbtt1+dbtt2)/2 <= coef(res)[2], se1, se2)  
   
   } else if (grepl('(^ht)|(^aht)|(^koh)',mod,ignore.case = T)) {
     

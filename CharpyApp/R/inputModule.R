@@ -48,26 +48,7 @@ inputUI <- function(id) {
     #selectInput(ns('nsim'),"Number Bootstrap Iterations per Model",
     #            choices = list('1000 (full run)'=1000, '100 (test run)'=100)),
     hr(),
-    conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht')", {
-      tagList(
-        h5('Starting Values for Hyperbolic Tangent Models'),
-        numericInput(ns('c_prov'),'C (\u00B0C)',50),
-        numericInput(ns('d_prov'),'D',.0001),
-        numericInput(ns('t0_prov'),'DBTT (\u00B0C)',10))
-    },ns=ns),
-    conditionalPanel(condition = "input.which_models.includes('abur')", {
-      tagList(
-        h5('Starting Values for Burr Models'),
-        numericInput(ns('k_prov'),'k',.04),
-        numericInput(ns('m_prov'),'m',.04))
-    },ns=ns),
-    conditionalPanel(condition = "input.which_models.includes('koh') || input.which_models.includes('akoh')", {
-      tagList(
-        h5('Starting Values for Kohout Models'),
-        numericInput(ns('ck_prov'),'C (\u00B0C)',20),
-        numericInput(ns('p_prov'),'p',2),
-        numericInput(ns('dbtt'),'T0 (\u00B0C)',-5))
-    },ns=ns),
+    uiOutput(ns('initial_params')),
     
     actionButton(ns('goButton'),'Go')
   )
@@ -125,7 +106,7 @@ inputServer <- function(id) {
         }
         
         tagList(
-          selectInput(session$ns('num_temps'),"Number Additional Characteristic Temperatures to be Estimated",
+          selectInput(session$ns('num_temps'),"Number of Additional Characteristic Temperatures to be Estimated",
                       choices = 0:3, selected=0),
           
           conditionalPanel(condition = "input.num_temps >= 1", {
@@ -147,6 +128,41 @@ inputServer <- function(id) {
           },ns=session$ns)
         )
 
+      })
+      
+      output$initial_params <- renderUI({
+        
+        if(is.null(input$datafile)) {
+          return(NULL)
+        }
+        
+        dataset = read_csv(input$datafile$datapath)
+        
+        med_temp = median(dataset$temperature)
+        
+        tagList(
+          conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht')", {
+            tagList(
+              h5('Starting Values for Hyperbolic Tangent Models'),
+              numericInput(session$ns('c_prov'),'C (\u00B0C)',25),
+              numericInput(session$ns('d_prov'),'D',.0001),
+              numericInput(session$ns('t0_prov'),'DBTT (\u00B0C)',med_temp))
+          },ns=session$ns),
+          conditionalPanel(condition = "input.which_models.includes('abur')", {
+            tagList(
+              h5('Starting Values for Burr Models'),
+              numericInput(session$ns('k_prov'),'k',1),
+              numericInput(session$ns('m_prov'),'m',.1),
+              numericInput(session$ns('t0_prov_bur'),'T0 (\u00B0C)',med_temp))
+          },ns=session$ns),
+          conditionalPanel(condition = "input.which_models.includes('koh') || input.which_models.includes('akoh')", {
+            tagList(
+              h5('Starting Values for Kohout Models'),
+              numericInput(session$ns('ck_prov'),'C (\u00B0C)',25),
+              numericInput(session$ns('p_prov'),'p',1),
+              numericInput(session$ns('dbtt'),'T0 (\u00B0C)',med_temp))
+          },ns=session$ns)
+        )
       })
       
       output$download <- downloadHandler(
@@ -195,14 +211,14 @@ inputServer <- function(id) {
           
           need(as.numeric(c(input$c_prov,input$d_prov,input$t0_prov,
                             input$k_prov,input$m_prov,input$ck_prov,
-                            input$p_prov,input$dbtt,
+                            input$p_prov,input$dbtt,input$t0_prov_bur,
                             input$upper_shelf,input$lower_shelf)) %>%
                is.numeric(),
                "Non-numeric parameters detected."), 
           
           need(!any(is.na(as.numeric(c(input$c_prov,input$d_prov,input$t0_prov,
                                        input$k_prov,input$m_prov,input$ck_prov,
-                                       input$p_prov,input$dbtt,
+                                       input$p_prov,input$dbtt,input$t0_prov_bur,
                                        input$upper_shelf,input$lower_shelf)))),
                "Empty parameter fields detected."),
           
@@ -215,6 +231,7 @@ inputServer <- function(id) {
         c_prov = as.numeric(input$c_prov)
         d_prov = as.numeric(input$d_prov)
         t0_prov = as.numeric(input$t0_prov)
+        t0_prov_bur = as.numeric(input$t0_prov_bur)
         k_prov = as.numeric(input$k_prov)
         m_prov = as.numeric(input$m_prov)
         ck_prov = as.numeric(input$ck_prov)
@@ -275,16 +292,16 @@ inputServer <- function(id) {
         
         if('abur' %in% input$which_models) {
           if(shelves == 'snf') {
-            start$abur   = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf, use=upper_shelf)
+            start$abur   = c(k=k_prov, t0=t0_prov_bur, m=m_prov, lse=lower_shelf, use=upper_shelf)
             
           } else if(shelves == 'bsf') {
-            start$aburf  = c(k=k_prov, t0=t0_prov, m=m_prov) 
+            start$aburf  = c(k=k_prov, t0=t0_prov_bur, m=m_prov) 
             
           } else if(shelves == 'usf') {
-            start$aburuf = c(k=k_prov, t0=t0_prov, m=m_prov, lse=lower_shelf) 
+            start$aburuf = c(k=k_prov, t0=t0_prov_bur, m=m_prov, lse=lower_shelf) 
           
           } else if(shelves == 'lsf') {
-            start$aburlf = c(k=k_prov, t0=t0_prov, m=m_prov, use=upper_shelf) 
+            start$aburlf = c(k=k_prov, t0=t0_prov_bur, m=m_prov, use=upper_shelf) 
           }
         }
         
@@ -389,8 +406,7 @@ inputServer <- function(id) {
         # save model stats for models that converged
         mstats2 = mstats[keepid==1, 1:5]
         mod2 = as.character(mstats2$mod)
-        
-        #browser()
+  
         
         other_vars = list(mod = mod,
                           temp = temp,

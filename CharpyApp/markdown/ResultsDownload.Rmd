@@ -28,33 +28,62 @@ cat(paste('## Date:', Sys.Date(),'\n'))
 ```{r results='asis'}
 cat("**Starting Values for Optimization** \n\n")
 
+unit = strsplit(other_vars$yvar_name,' ')[[1]][2]
+
+if(is.na(unit)) {
+  unit = ""
+}
+
 for(ii in 1:length(other_vars$start)) {
-  cat(paste("Model:",correct_names(names(other_vars$start)[ii])))
+  mod_name = correct_names(names(other_vars$start)[ii])
+  mod_name = switch(mod_name,
+                    'HT' = 'HT (Hyperbolic Tangent)',
+                    'AHT' = 'AHT (Asymmetric Hyperbolic Tangent)',
+                    'BUR'= 'BUR (Burr)',
+                    'ACT' = 'ACT (Arctangent)',
+                    'KHT' = 'KHT (Kohout - Asymmetric)')
+  cat(paste("Model:",mod_name))
   cat('\n')
   just_vals = other_vars$start[[ii]]
   names(just_vals) = NULL
-  print(knitr::kable(data.frame(parameter=names(other_vars$start[[ii]]),initial_value=just_vals)))
+  outdf = data.frame('Parameter'=names(other_vars$start[[ii]]),'Initial Value'=round(just_vals,3) )
+  
+  if(mod_name %in% c('HT','AHT')) {
+    outdf$Parameter[outdf$Parameter == 't0'] = "DBTT"
+  } else {
+    outdf$Parameter[outdf$Parameter == 't0'] = "T0"
+  }
+
+  outdf$Parameter[outdf$Parameter %in% c('c','d')] = toupper(outdf$Parameter[outdf$Parameter %in% c('c','d')])
+  
+  # add degree celsius
+  inds = outdf$Parameter %in% c("DBTT","T0","C")
+  outdf$Parameter[inds] = paste(outdf$Parameter[inds],' (\u00B0C)',sep='')
+  
+  print(knitr::kable(outdf))
   cat('\n')
 }
 ```
 
 ```{r results='asis'}
 cat('**Shelf selection**: ')
+
+unit_no_parenth = str_split(unit,'(\\()|(\\))')[[1]][2]
 if(other_vars$shelves == 'bsf') {
-  cat(paste("Both shelves wer set to be fixed. The upper shelf was set to be ",other_vars$upper_shelf,
-            " and the lower shelf to be ",other_vars$lower_shelf,".\n\n",sep=""))
+  cat(paste("Both shelves were set to be fixed. The upper shelf was set to be ",other_vars$upper_shelf,' ',unit_no_parenth,
+            " and the lower shelf to be ",other_vars$lower_shelf,' ',unit_no_parenth,".\n\n",sep=""))
 } else if(other_vars$shelves == 'snf') {
     cat(paste("Both shelves were set to be not fixed.",
-              " The upper shelf was initialized to be ",other_vars$upper_shelf,
-              " and the lower shelf was initialized to be ",other_vars$lower_shelf,".\n\n",sep=""))
+              " The upper shelf was initialized to be ",other_vars$upper_shelf,' ',unit_no_parenth,
+              " and the lower shelf was initialized to be ",other_vars$lower_shelf,' ',unit_no_parenth,".\n\n",sep=""))
 } else if(other_vars$shelves == 'usf') {
     cat(paste("The upper shelf was set to be fixed, and the lower shelf was set to be not fixed.",
-              " The upper shelf value was assumed to be ",other_vars$upper_shelf,
-              " and the lower shelf was initialized at ",other_vars$lower_shelf,".\n\n",sep=""))
+              " The upper shelf value was assumed to be ",other_vars$upper_shelf,' ',unit_no_parenth,
+              " and the lower shelf was initialized at ",other_vars$lower_shelf,' ',unit_no_parenth,".\n\n",sep=""))
 } else if(other_vars$shelves == 'lsf') {
     cat(paste("The upper shelf was set to be not fixed, and the lower shelf was set to be fixed.",
-              " The upper shelf value was initialized at ",other_vars$upper_shelf,
-              " and the lower shelf was set to be ",other_vars$lower_shelf,".\n\n",sep=""))
+              " The upper shelf value was initialized at ",other_vars$upper_shelf,' ',unit_no_parenth,
+              " and the lower shelf was set to be ",other_vars$lower_shelf,' ',unit_no_parenth,".\n\n",sep=""))
 }
 ```
 
@@ -65,8 +94,9 @@ plot_fits_out
 
 \newpage
 
-## Coefficients Table
-```{r}
+
+```{r results='asis'}
+cat("## Coefficients Table")
 knitr::kable(coef_table_out)
 ```
 
@@ -76,14 +106,16 @@ knitr::kable(fit_metrics_table_out)
 ```
 
 
-## DBTT Table
-```{r}
+```{r results='asis'}
+cat("## DBTT Table (\u00B0C)")
 knitr::kable(dbtt_table_out)
 ```
 
 
-## Other Characteristic Temperatures
-```{r}
+
+```{r results='asis'}
+cat('## Other Characteristic Temperatures Table (\u00B0C)')
+cat('\n\n')
 if(!is.null(plot_tpout_out)) {
   knitr::kable(plot_tpout_out)
 } else {

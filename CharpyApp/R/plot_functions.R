@@ -6,6 +6,8 @@ plot_fits <- function(computedResults,fits_to_show,show_CIs) {
   #            upper_shelf, lower_shelf
   
   mod = other_vars$mod[correct_names(other_vars$mod) %in% fits_to_show]
+  mod = mod[mod %in% other_vars$mod2] # only keep converged models
+    
   temp = other_vars$temp
   yy = other_vars$yy
   nn = other_vars$nn

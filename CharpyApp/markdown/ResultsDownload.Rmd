@@ -97,6 +97,8 @@ plot_fits_out
 
 ```{r results='asis'}
 cat("## Coefficients Table")
+inds = coef_table_out$Coefficient %in% c("T0","DBTT","C")
+coef_table_out$Coefficient[inds] = paste(coef_table_out$Coefficient[inds],'(\u00B0C)')
 knitr::kable(coef_table_out)
 ```
 

@@ -60,6 +60,10 @@ for(ii in 1:length(other_vars$start)) {
   inds = outdf$Parameter %in% c("DBTT","T0","C")
   outdf$Parameter[inds] = paste(outdf$Parameter[inds],' (\u00B0C)',sep='')
   
+  # lse -> LS, use -> US
+  outdf$Parameter[outdf$Parameter == 'lse'] = 'LS'
+  outdf$Parameter[outdf$Parameter == 'use'] = 'US'
+  
   print(knitr::kable(outdf))
   cat('\n')
 }
@@ -99,6 +103,11 @@ plot_fits_out
 cat("## Coefficients Table")
 inds = coef_table_out$Coefficient %in% c("T0","DBTT","C")
 coef_table_out$Coefficient[inds] = paste(coef_table_out$Coefficient[inds],'(\u00B0C)')
+
+# USE -> US, etc
+coef_table_out$Coefficient[coef_table_out$Coefficient == 'USE'] = 'US'
+coef_table_out$Coefficient[coef_table_out$Coefficient == 'LSE'] = 'LS'
+
 knitr::kable(coef_table_out)
 ```
 

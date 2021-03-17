@@ -65,7 +65,8 @@ plot_fits <- function(computedResults,fits_to_show,show_CIs) {
     ylab(yvar_name) +
     xlab('Temperature (\u00B0C)')+
     ggtitle(paste(yvar_name,'vs.','Temperature')) +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(col="Model")
   
   if(show_CIs == 'Yes' && !is.null(computedResults()$boots)) {
     boot_data = computedResults()$boots

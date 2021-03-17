@@ -100,6 +100,7 @@ compute_boot <- function(computedResults) {
 
 }
 
+# CIs for regression mean
 compute_boot_CIs <- function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,FF,alpha){
   
   # save important variables
@@ -115,14 +116,6 @@ compute_boot_CIs <- function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,
   # generate predicted values
   f.new = pfun(mod,res,x.new,fun,lower_shelf,upper_shelf)
   
-  # compute confidence bounds
-  # basic bootstrap intervals do not always contain the predicted value,
-  # use studentized bootstrap intervals instead
-  
-  # studentized bootstrap intervals
-  #sdpred = as.vector(sapply(as.data.frame(FF), sd, na.rm = TRUE))
-  #ci.lo = f.new - tval*sdpred
-  #ci.hi = f.new + tval*sdpred
   ci.lo = as.vector(sapply(as.data.frame(FF),function(x) quantile(x,alpha/2,na.rm=T)))
   ci.hi = as.vector(sapply(as.data.frame(FF),function(x) quantile(x,1-alpha/2,na.rm=T)))
   df.mc = data.frame(x=x.new, f=f.new, lwr.conf=ci.lo, upr.conf=ci.hi)
@@ -141,6 +134,7 @@ compute_boot_CIs <- function(mod,yy,x,x.new,fun,res,fit,lower_shelf,upper_shelf,
   return(df.mc)
 }
 
+# CIs for coefficients
 compute_boot_coefs <- function(bbeta,other_vars,results,model_name) {
   
   SEs = apply(bbeta,2,function(x) sqrt(var(x)))

@@ -5,6 +5,7 @@ library(minpack.lm)
 library(ggplot2)
 library(pracma)
 library(truncnorm)
+library(tinytex)
 
 source('R/inputModule.R')
 source('R/plotModules.R')

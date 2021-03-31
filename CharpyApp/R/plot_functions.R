@@ -59,21 +59,29 @@ plot_fits <- function(computedResults,fits_to_show,show_CIs) {
   
   df_to_plot$model = correct_names(df_to_plot$model)
   
+  
   p = ggplot(data=df_to_plot,aes(x=temp,y=value,col=model)) + 
     geom_line() +
-    geom_point(data=original_data,aes(x=temp,y=yy),inherit.aes = FALSE) +
+    geom_point(data=original_data,aes(x=temp,y=yy),inherit.aes = FALSE,size=3) +
     ylab(yvar_name) +
     xlab('Temperature (\u00B0C)')+
-    ggtitle(paste(yvar_name,'vs.','Temperature')) +
+    ggtitle(paste(strsplit(yvar_name,' ')[[1]][1],'vs.','Temperature')) +
     theme(plot.title = element_text(hjust = 0.5)) +
-    labs(col="Model")
+    labs(col="Model") +
+    theme(axis.text.x = element_text(size=17),
+          axis.text.y = element_text(size=17),
+          axis.title.x = element_text(size=20),
+          axis.title.y = element_text(size=20),
+          legend.text = element_text(size=17),
+          plot.title = element_text(size=20),
+          legend.title = element_text(size=20))
   
   if(show_CIs == 'Yes' && !is.null(computedResults()$boots)) {
     boot_data = computedResults()$boots
     boot_data$model = correct_names(boot_data$model)
     boot_data = boot_data[boot_data$model %in% fits_to_show,]
     p = p + geom_ribbon(data=boot_data, aes(x=x, y=f, ymin=lwr.conf, ymax=upr.conf, fill=model), 
-                        alpha=0.1, linetype=0)
+                        alpha=0.1, linetype=0) + labs(fill='Model')
   }
   
   p

@@ -53,7 +53,6 @@ compute_boot <- function(computedResults) {
                                                    results,
                                                    model_name)
       
-      #browser()
       
       if(grepl('(^ht)|(^aht)|(^koh)',model_name,ignore.case = T)) {
         cints = coef_ints[[model_name]]

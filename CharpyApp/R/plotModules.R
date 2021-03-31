@@ -4,19 +4,20 @@ plotFitsUI <- function(id){
   tagList(
     br(),
     h3('Fitted Curves',align='center'),
-    plotOutput(ns('plot_fits')),
+    br(),
+    fluidRow(column(8,plotOutput(ns('plot_fits')),offset=2)),
     br(),
     fluidRow(
-    column(width=4,uiOutput(ns('which_fits_ui'))),
-    column(width=4,uiOutput(ns('show_CIs_ui')))
+    column(width=3,uiOutput(ns('which_fits_ui')),offset=3),
+    column(width=3,uiOutput(ns('show_CIs_ui')),offset=0)
     ),
     br(),
     hr(),
-    h3("Fit Metrics",align='center'),
+    h3("Model Selection Statistics",align='center'),
     DT::dataTableOutput(ns('fit_metrics_table')),
     br(),
     hr(),
-    h3('Regression Coefficients',align='center'),
+    h3('Parameter Estimates',align='center'),
     DT::dataTableOutput(ns('coefs_table')),
     br(),
     hr(),

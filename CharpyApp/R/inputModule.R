@@ -12,7 +12,7 @@ inputUI <- function(id) {
     sliderInput(ns('conf_level'),'Confidence Level for Plots',
                 min=.80,max=.99,value=.95,step=.01),
     hr(),
-    selectInput(ns('response_type'),"Parameter To Be Fit",
+    selectInput(ns('response_type'),"Response Variable to be Fit",
                 choices = c('KV (J)'=1,'LE (mm)'=2,'SFA (%)'=3,'Other'=4)),
     
     conditionalPanel(condition = 'input.response_type == 4',{
@@ -30,13 +30,13 @@ inputUI <- function(id) {
     hr(),
     selectInput(ns('lower_shelf_option'),
                 'Lower Shelf:',
-                choices=c('Constant','Variable'),
-                selected='Constant'),
+                choices=c('Fixed','Variable'),
+                selected='Fixed'),
     
     selectInput(ns('upper_shelf_option'),
                 'Upper Shelf:',
-                choices=c('Constant','Variable'),
-                selected='Constant'),
+                choices=c('Fixed','Variable'),
+                selected='Fixed'),
     
     hr(),
     uiOutput(ns('shelf_selections')),
@@ -84,7 +84,7 @@ inputServer <- function(id) {
         
         tagList(
           h5("Specify lower and upper shelves"),
-          h6("(Used as constant values for models with constant shelves and starting values otherwise)"),
+          h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
           numericInput(session$ns('lower_shelf'),paste("Lower Shelf",yvar_name),min(dataset$y)),
           numericInput(session$ns('upper_shelf'),paste("Upper Shelf",yvar_name),max(dataset$y))
         )
@@ -247,13 +247,13 @@ inputServer <- function(id) {
           
           shelves_in = c(input$lower_shelf_option,input$upper_shelf_option)
           
-          if(all(shelves_in == c('Constant','Constant') )) {
+          if(all(shelves_in == c('Fixed','Fixed') )) {
             shelves = 'bsf'
           
-          } else if(all(shelves_in == c('Constant','Variable') )) {
+          } else if(all(shelves_in == c('Fixed','Variable') )) {
             shelves = 'lsf'
             
-          } else if(all(shelves_in == c('Variable','Constant') )) {
+          } else if(all(shelves_in == c('Variable','Fixed') )) {
             shelves = 'usf'
           
           } else {

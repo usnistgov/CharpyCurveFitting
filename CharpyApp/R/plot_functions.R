@@ -104,7 +104,7 @@ create_coefs_table <- function(computedResults) {
     coef_ints = round(computedResults()$coef_ints[[ mod_names[ii] ]],4)
     
     this_df = cbind(mod_names[ii],this_df,coef_ints[1:nrow(this_df),])
-    names(this_df) = c("Model","Coefficient","Estimate","S.E.","Lower Cl", "Upper Cl")
+    names(this_df) = c("Model","Parameter","Estimate","S.E.","Lower Cl", "Upper Cl")
     
     outlist[[ii]] = this_df
     
@@ -113,15 +113,15 @@ create_coefs_table <- function(computedResults) {
   outdf = bind_rows(outlist)
   
   # capitalize / un-capitalize specific coefficient names
-  outdf$Coefficient = toupper(outdf$Coefficient)
-  inds_to_lwr = outdf$Coefficient %in% c('K','M','P')
-  outdf$Coefficient[inds_to_lwr] = tolower(outdf$Coefficient[inds_to_lwr])
+  outdf$Parameter = toupper(outdf$Parameter)
+  inds_to_lwr = outdf$Parameter %in% c('K','M','P')
+  outdf$Parameter[inds_to_lwr] = tolower(outdf$Parameter[inds_to_lwr])
   
   # fix model names, e.g. htuf -> HT
   outdf$Model = correct_names(outdf$Model)
   
-  the_rows = (outdf$Model %in% c("HT","AHT","ACT")) & (outdf$Coefficient == 'T0')
-  outdf[the_rows,'Coefficient'] = 'DBTT'
+  the_rows = (outdf$Model %in% c("HT","AHT","ACT")) & (outdf$Parameter == 'T0')
+  outdf[the_rows,'Parameter'] = 'DBTT'
   
   outdf
   

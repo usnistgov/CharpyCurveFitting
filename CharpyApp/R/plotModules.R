@@ -14,19 +14,19 @@ plotFitsUI <- function(id){
     br(),
     hr(),
     h3("Model Selection Statistics",align='center'),
-    DT::dataTableOutput(ns('fit_metrics_table')),
+    fluidRow(column(width=9,DT::dataTableOutput(ns('fit_metrics_table')),offset=1)),
     br(),
     hr(),
     h3('Parameter Estimates',align='center'),
-    DT::dataTableOutput(ns('coefs_table')),
+    fluidRow(column(width=9,DT::dataTableOutput(ns('coefs_table')),offset=1)),
     br(),
     hr(),
     h3('DBTT Table (\u00B0C)',align='center'),
-    DT::dataTableOutput(ns('dbtt_table')),
+    fluidRow(column(width=9,DT::dataTableOutput(ns('dbtt_table')),offset=1)),
     br(),
     hr(),
     h3("Additional Characteristic Temperatures (\u00B0C)",align='center'),
-    DT::dataTableOutput(ns('tpout'))
+    fluidRow(column(width=9,DT::dataTableOutput(ns('tpout')),offset=1))
     
   )
 }
@@ -48,7 +48,7 @@ plotFitsServer <- function(id,computedResults) {
           return(NULL)
         }
         ns <- session$ns
-        selectInput(ns('show_CIs'),'Show Uncertainties?',
+        selectInput(ns('show_CIs'),'Show Confidence Bounds?',
                     choices = c('Yes','No'),
                     selected = 'No')
       })
@@ -62,6 +62,7 @@ plotFitsServer <- function(id,computedResults) {
         res
         
       }, options = list(searching = FALSE, paging=FALSE))
+                        #columnDefs = list(list(className = 'dt-center', targets = '_all'))))
       
       output$tpout <- DT::renderDataTable({
         
@@ -72,6 +73,7 @@ plotFitsServer <- function(id,computedResults) {
         res
         
       }, options = list(searching=FALSE, paging=FALSE))
+                        #columnDefs = list(list(className = 'dt-center', targets = '_all'))))
       
       output$plot_fits <- renderPlot({
         
@@ -84,6 +86,7 @@ plotFitsServer <- function(id,computedResults) {
         res
         
       })
+      
       
       output$coefs_table <- DT::renderDataTable({
         
@@ -99,6 +102,8 @@ plotFitsServer <- function(id,computedResults) {
         
         
       }, options = list(searching=FALSE, paging=FALSE))
+                        #columnDefs = list(list(className = 'dt-center', targets = '_all'))))
+      
       
       output$dbtt_table <- DT::renderDataTable({
       
@@ -109,6 +114,8 @@ plotFitsServer <- function(id,computedResults) {
         res
         
       },options = list(searching=FALSE, paging=FALSE))
+                       #columnDefs = list(list(className = 'dt-center', targets = '_all'))))
+      
       
       fits_info = reactive({
         # to pass to r markdown document

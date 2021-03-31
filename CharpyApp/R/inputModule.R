@@ -380,7 +380,7 @@ inputServer <- function(id) {
             laa = 0
             lbb = 0
             uls = 0
-            uus = 0
+            uus = 100
           
           }  
           

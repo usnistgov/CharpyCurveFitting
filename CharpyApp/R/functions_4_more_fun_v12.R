@@ -1009,8 +1009,7 @@ boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
     #   3.  for SFA, use uniform(uaa, 100) to generate a random upper_shelf
 																	 
   lshelf = runif(1, laa, lbb)
-  ushelf = ifelse(fit==3, runif(1, uaa, 100), 
-                          rnorm(1, upper_shelf, uus))
+  ushelf = ifelse(fit==3, 100, rnorm(1, upper_shelf, uus))
   if (ushelf < lshelf) ushelf = lshelf*1.10
   
 # fit model for bootstrap sample, generate statistics

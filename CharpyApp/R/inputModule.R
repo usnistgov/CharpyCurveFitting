@@ -15,9 +15,8 @@ inputUI <- function(id) {
     selectInput(ns('response_type'),"Response Variable to be Fit",
                 choices = c('KV (J)'=1,'LE (mm)'=2,'SFA (%)'=3,'Other'=4)),
     
-    conditionalPanel(condition = 'input.response_type == 4',{
-      textInput(ns('custom_param'),"Parameter (Unit)",value="KV (J)")
-    },ns=ns),
+    conditionalPanel(condition = 'input.response_type == 4',
+      textInput(ns('custom_param'),"Parameter (Unit)",value="KV (J)"),ns=ns),
     hr(),
     
     checkboxGroupInput(ns('which_models'),'Select Regression Models',
@@ -28,25 +27,49 @@ inputUI <- function(id) {
                                 'Kohout (KHT)'),
                   choiceValues=c('ht','aht','abur','koh','akoh')),
     hr(),
-    selectInput(ns('lower_shelf_option'),
-                'Lower Shelf:',
-                choices=c('Fixed','Variable'),
-                selected='Fixed'),
     
-    selectInput(ns('upper_shelf_option'),
-                'Upper Shelf:',
-                choices=c('Fixed','Variable'),
-                selected='Fixed'),
+    h4("Specify whether shelves are fixed or variable"),
+    h6(paste("(Variable shelves will be fit using the optimization procedure,",
+              "whereas fixed shelves are assumed known, up to some amount of uncertainty.",
+             "Note that if SFA is selected as the response variable, shelves will be assumed",
+             "fixed with 0 uncertainty.)")),
+    
+    # Fixed vs. Variable shelves (for SFA, shelves fixed at 0 and 100)
+    conditionalPanel(condition = 'input.response_type != 3',
+      selectInput(ns('lower_shelf_option'),
+                  'Lower Shelf:',
+                  choices=c('Fixed','Variable'),
+                  selected='Fixed'),
+      
+      selectInput(ns('upper_shelf_option'),
+                  'Upper Shelf:',
+                  choices=c('Fixed','Variable'),
+                  selected='Fixed'),ns=ns),
+    
+    conditionalPanel(condition = 'input.response_type == 3',
+       selectInput(ns('lower_shelf_option'),
+                   'Lower Shelf:',
+                   choices=c('Fixed'),
+                   selected='Fixed'),
+       
+       selectInput(ns('upper_shelf_option'),
+                   'Upper Shelf:',
+                   choices=c('Fixed'),
+                   selected='Fixed'),ns=ns),
     
     hr(),
     uiOutput(ns('shelf_selections')),
+    br(),
+    h4("Unceratainty for fixed shelves"),
+    h6(paste("(If a shelf is selected as fixed, an uncertainty value must be provided.",
+             "Click the 'More Info' button below for further details.)")),
+    uiOutput(ns('lower_shelf_uncertainty')),
+    uiOutput(ns('upper_shelf_uncertainty')),
+    actionButton(ns('help_uncertainty'),'More Info'),
     hr(),
-    
     uiOutput(ns('additional_temps')),
     br(),
     
-    #selectInput(ns('nsim'),"Number Bootstrap Iterations per Model",
-    #            choices = list('1000 (full run)'=1000, '100 (test run)'=100)),
     hr(),
     uiOutput(ns('initial_params')),
     
@@ -61,6 +84,21 @@ inputServer <- function(id) {
     function(input,output,session){
       
       template_file = readr::read_csv('./data/sample.csv')
+      
+      observeEvent(input$help_uncertainty, {
+        showModal(modalDialog(
+          title = "Shelf Uncertainties: Details",
+          paste("If a shelf is selected as fixed, a corresponding uncertainty value must be provided.",
+                "The uncertainty in the lower shelf is represented by a uniform",
+                "distribution, centered at the user's selection for the lower shelf.",
+                "The 'lower shelf uncertainty' provides the half-width of the uniform interval.",
+                "(If the lower endpoint of the interval exceeds 0, the interval is lower-truncated at 0.)",
+                "The uncertainty in the upper shelf (if selected as 'Fixed') is represented by a normal distribution,",
+                "centered at the chosen upper shelf value with a standard deviation",
+                "given by the input 'upper shelf uncertainty'.",
+                "For more details, see the technical manuscript regarding this application."),
+        ))
+      })
       
       output$shelf_selections <- renderUI({
         
@@ -82,12 +120,64 @@ inputServer <- function(id) {
         
         dataset = read_csv(input$datafile$datapath)
         
-        tagList(
-          h5("Specify lower and upper shelves"),
-          h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
-          numericInput(session$ns('lower_shelf'),paste("Lower Shelf",yvar_name),min(dataset$y)),
-          numericInput(session$ns('upper_shelf'),paste("Upper Shelf",yvar_name),max(dataset$y))
-        )
+        if(fit == 3) {
+          return(
+            tagList(
+              h5("For SFA, the lower and upper shelf are assumed to be fixed at 0% and 100%")
+            )
+          )
+        }
+        
+        else{
+          return(
+            tagList(
+              h4("Specify lower and upper shelves"),
+              h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
+              numericInput(session$ns('lower_shelf'),paste("Lower Shelf",yvar_name),min(dataset$y),min=0),
+              numericInput(session$ns('upper_shelf'),paste("Upper Shelf",yvar_name),max(dataset$y),min=0)
+            )
+          )
+        }
+      
+      })
+      
+      output$lower_shelf_uncertainty <- renderUI({
+        
+        if(is.null(input$datafile)) {
+          return(NULL)
+        }
+      
+        if(input$response_type == 1 && input$lower_shelf_option == "Fixed") {
+          tagList(
+            numericInput(session$ns('uls'),"Lower Shelf Uncertainy",value=.5,min=0)
+          )
+        } else if (input$response_type == 2 && input$lower_shelf_option == "Fixed") {
+          tagList(
+            numericInput(session$ns('uls'),"Lower Shelf Uncertainy",value=.05,min=0)
+          )                 
+        } else if (input$response_type == 4 && input$lower_shelf_option == "Fixed") {
+          tagList(
+            numericInput(session$ns('uls'),"Lower Shelf Uncertainy",value=NA,min=0)
+          )                 
+        } else {
+          return(NULL)
+        }
+    
+      })
+      
+      output$upper_shelf_uncertainty <- renderUI({
+        
+        if(is.null(input$datafile)) {
+          return(NULL)
+        }
+        
+        if(input$response_type != 3 && input$upper_shelf_option == "Fixed") {
+          tagList(
+            numericInput(session$ns('uus'),"Upper Shelf Uncertainty",value=.05*input$upper_shelf)
+          )
+        }  else {
+          return(NULL)
+        }
         
       })
       
@@ -225,7 +315,13 @@ inputServer <- function(id) {
                  "Empty parameter fields detected."),
             
             need(input$lower_shelf < input$upper_shelf,
-                 "Lower shelf value must be less than the upper shelf value.")
+                 "Lower shelf value must be less than the upper shelf value."),
+            
+            need(!is.na(input$uls),
+                 "Missing value detected in lower shelf uncertainty."),
+            
+            need(input$uls >= 0 && input$uus >= 0,
+                 "Shelf uncertainties must be non-negative")
             
           )
           
@@ -240,8 +336,13 @@ inputServer <- function(id) {
           p_prov = as.numeric(input$p_prov)
           dbtt = as.numeric(input$dbtt)
           
-          upper_shelf = as.numeric(input$upper_shelf)
-          lower_shelf = as.numeric(input$lower_shelf)
+          fit = as.numeric(input$response_type)
+          
+          # for SFA, shelves fixed at 100 and 0
+          upper_shelf = ifelse(fit == 3,100,as.numeric(input$upper_shelf))
+          lower_shelf = ifelse(fit == 3,0,as.numeric(input$lower_shelf))
+          
+          # number bootstrap
           nsim = 1000
           conf_level = as.numeric(input$conf_level)
           
@@ -346,7 +447,7 @@ inputServer <- function(id) {
           nn = length(yy)
           n.new = 100
           
-          fit = as.numeric(input$response_type)
+          
           
           if(fit < 4) {
             yvar_name = c('KV (J)','LE (mm)','SFA (%)')[fit]
@@ -361,28 +462,17 @@ inputServer <- function(id) {
             yval = NA
           }
           
-          
-          
-          # default values for each response
-          if (fit == 1) {
-            laa = 1.5
-            lbb = 2.5
-            uls = (lbb - laa)/sqrt(12)
-            uus = 0.05*upper_shelf
-            
-          } else if (fit == 2){
-            laa = 0
-            lbb = 0.1
-            uls = (lbb - laa)/sqrt(12)
-            uus = 0.05*upper_shelf
-            
-          } else if (fit %in% c(3,4)) {
+          # shelf uncertainties
+          if (fit == 3) {
             laa = 0
             lbb = 0
-            uls = 0
             uus = 0
           
-          }  
+          } else {
+            laa = max(0,lower_shelf - as.numeric(input$uls))
+            lbb = lower_shelf + as.numeric(input$uls)
+            uus = as.numeric(input$uus)
+          }
           
           
           # create new temperature values for plotting
@@ -418,7 +508,6 @@ inputServer <- function(id) {
                             nn = nn,
                             n.new = n.new,
                             nsim = nsim,
-                            uls = uls,
                             uus = uus,
                             laa = laa,
                             lbb = lbb,

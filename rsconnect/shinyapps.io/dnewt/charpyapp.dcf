@@ -1,0 +1,13 @@
+name: charpyapp
+title:
+username:
+account: dnewt
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3258691
+bundleId: 4612122
+url: https://dnewt.shinyapps.io/charpyapp/
+when: 1621354090.37355
+lastSyncTime: 1621354090.37355
+asMultiple: FALSE
+asStatic: FALSE

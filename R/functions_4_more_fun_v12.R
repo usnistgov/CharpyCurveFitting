@@ -952,8 +952,7 @@ tfun = function(mod,res,xx,lower_shelf,upper_shelf,alpha,parms,
 # function to compute confidence intervals for parameters
 # using parametric bootstrap.  
 # return predicted values for plotting in ci.plot function
-boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
-                uaa,laa,lbb,uus,nsim){
+boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,uls,uus,nsim){
   
   # save original data in data frame
   df.old = data.frame(x,yy)
@@ -997,7 +996,7 @@ boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
     if (fit==3) {
       ygen = rtruncnorm(nn, 0, 100, f.old, sigma)
     } else {
-        ygen = rtruncnorm(nn, 0, Inf, f.old, sigma)
+      ygen = rtruncnorm(nn, 0, Inf, f.old, sigma)
     }
     
     # generate random values of upper and lower shelves
@@ -1008,29 +1007,29 @@ boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
     #       a random upper_shelf value for all responses except for SFA
     #   3.  for SFA, use uniform(uaa, 100) to generate a random upper_shelf
 																	 
-  lshelf = runif(1, laa, lbb)
-  ushelf = ifelse(fit==3, 100, rnorm(1, upper_shelf, uus))
-  if (ushelf < lshelf) ushelf = lshelf*1.10
+    lshelf = ifelse(fit==3, 0, rtruncnorm(1, a=0, mean=lower_shelf, sd = uls))
+    ushelf = ifelse(fit==3, 100, rnorm(1, mean=upper_shelf, sd=uus))
   
-# fit model for bootstrap sample, generate statistics
-# constraints on model fits should ensure that shelves
-# aren't outside the acceptable range of values
-  if (mod %in% c("ht","aht","abur","koh","akoh")){ 
-     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                      lower=low, upper=hi, control=ctrl)
-  } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
-     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                      lower_shelf=lower_shelf, upper_shelf=upper_shelf, 
-                      lower=low, upper=hi, control=ctrl)
-  } else if (mod %in% c("htuf","ahtuf","aburuf","kohuf","akohuf")){
-     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                      upper_shelf=upper_shelf, 
-                      lower=low, upper=hi, control=ctrl)
-  } else if (mod %in% c("htlf","ahtlf","aburlf","kohlf","akohlf")){
-     rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
-                      lower_shelf=lower_shelf, 
-                      lower=low, upper=hi, control=ctrl)
-  }
+    
+    # fit model for bootstrap sample, generate statistics
+    # constraints on model fits should ensure that shelves
+    # aren't outside the acceptable range of values
+    if (mod %in% c("ht","aht","abur","koh","akoh")){ 
+       rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                        lower=low, upper=hi, control=ctrl)
+    } else if (mod %in% c("htf","ahtf","aburf","kohf","akohf")){
+       rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                        lower_shelf=lshelf, upper_shelf=ushelf, 
+                        lower=low, upper=hi, control=ctrl)
+    } else if (mod %in% c("htuf","ahtuf","aburuf","kohuf","akohuf")){
+       rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                        upper_shelf=ushelf, 
+                        lower=low, upper=hi, control=ctrl)
+    } else if (mod %in% c("htlf","ahtlf","aburlf","kohlf","akohlf")){
+       rl.nlm <- nls.lm(par=beta, fn=fun.res, temp=x, yy=ygen, 
+                        lower_shelf=lshelf, 
+                        lower=low, upper=hi, control=ctrl)
+    }
 
     
     # for cases where there is no fitting error, save results
@@ -1038,12 +1037,12 @@ boot = function(mod,yy,x,x.new,fun,fun.res,res,fit,lower_shelf,upper_shelf,
     if (rl.nlm$info %in% c(1,2,3)){
       
       # save values for confidence and prediction intervals
-      fl = pfun(mod,rl.nlm,x.new,fun,lower_shelf,upper_shelf)
+      fl = pfun(mod,rl.nlm,x.new,fun,lshelf,ushelf)
       FF[l,] <- fl
       
       # save parameter estimates, shelves, and RMSE (sig)
       # (lshelf and ushelf saved for models with at least one fixed shelf)
-      pred = pfun(mod,rl.nlm,x,fun,lower_shelf,upper_shelf)
+      pred = pfun(mod,rl.nlm,x,fun,lshelf,ushelf)
       sig = sqrt(sum((yy - pred)^2) / (nn - npar))
       if (mod %in% c("ht","aht","abur","koh","akoh")){
         BBeta[l,] <- c(coef(rl.nlm), sig)

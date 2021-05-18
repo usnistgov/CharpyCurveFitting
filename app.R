@@ -1,6 +1,8 @@
 library(shiny)
 library(shinythemes)
-library(tidyverse)
+library(readr)
+library(stringr)
+library(dplyr)
 library(minpack.lm)
 library(ggplot2)
 library(pracma)
@@ -15,6 +17,14 @@ source('R/downloadAllModule.R')
 
 
 ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
+                        
+    
+    br(),
+    h4(paste("You have accessed the url for the 'Transition Curve Fitting Tool'.",
+             "Usage of shinyapps.io for this application is currently pending NIST approval.",
+             "Contact david.newton@nist.gov for information on using the application in",
+             "the meantime (updated 5/18/2021).")),
+    br(),
 
     titlePanel("Transition Curve Fitting Tool"),
 
@@ -25,9 +35,9 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
 
         mainPanel(
             tabsetPanel(id='thePanel',
-                tabPanel('Regression Results', 
+                tabPanel('Regression Results',
                          plotFitsUI('fits_and_metrics')),
-                tabPanel('Diagnostic Plots', 
+                tabPanel('Diagnostic Plots',
                          plotResidsUI('resids'))
 
             )
@@ -38,11 +48,11 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
 server <- function(input, output, session) {
 
     computedResults <- inputServer('start')
-    
+
     observeEvent(computedResults()$other_vars, {
-        
+
         try(removeTab(inputId='thePanel',target='Download'))
-        
+
         appendTab(inputId='thePanel',
                   tabPanel('Download',
                            br(),
@@ -50,11 +60,11 @@ server <- function(input, output, session) {
                                     "displayed throughout the application.")),
                            downloadAllUI('download')))
     })
-    
+
     fits_info <- plotFitsServer('fits_and_metrics',computedResults)
-    
+
     plotResidsServer('resids',computedResults)
-    
+
     downloadAllServer('download',computedResults,fits_info)
     
 }

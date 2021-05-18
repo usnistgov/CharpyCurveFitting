@@ -29,10 +29,9 @@ inputUI <- function(id) {
     hr(),
     
     h4("Specify whether shelves are fixed or variable"),
-    h6(paste("(Variable shelves will be fit using the optimization procedure,",
-              "whereas fixed shelves are assumed known, up to some amount of uncertainty.",
-             "Note that if SFA is selected as the response variable, shelves will be assumed",
-             "fixed with 0 uncertainty.)")),
+    h6(paste("(Variable shelves are fit using the optimization procedure, whereas fixed shelves are not.",
+             "If shelves are fixed, the value of the shelf must be provided along with its associated uncertainty.",
+             "Note that if SFA is selected as the response variable, shelves will be assumed fixed with 0 uncertainty.)")),
     
     # Fixed vs. Variable shelves (for SFA, shelves fixed at 0 and 100)
     conditionalPanel(condition = 'input.response_type != 3',
@@ -60,7 +59,7 @@ inputUI <- function(id) {
     hr(),
     uiOutput(ns('shelf_selections')),
     br(),
-    h4("Unceratainty for fixed shelves"),
+    h4("Uncertainty for Fixed Shelves"),
     h6(paste("(If a shelf is selected as fixed, an uncertainty value must be provided.",
              "Click the 'More Info' button below for further details.)")),
     uiOutput(ns('lower_shelf_uncertainty')),
@@ -89,14 +88,13 @@ inputServer <- function(id) {
         showModal(modalDialog(
           title = "Shelf Uncertainties: Details",
           paste("If a shelf is selected as fixed, a corresponding uncertainty value must be provided.",
-                "The uncertainty in the lower shelf is represented by a uniform",
-                "distribution, centered at the user's selection for the lower shelf.",
-                "The 'lower shelf uncertainty' provides the half-width of the uniform interval.",
-                "(If the lower endpoint of the interval exceeds 0, the interval is lower-truncated at 0.)",
                 "The uncertainty in the upper shelf (if selected as 'Fixed') is represented by a normal distribution,",
                 "centered at the chosen upper shelf value with a standard deviation",
-                "given by the input 'upper shelf uncertainty'.",
-                "For more details, see the technical manuscript regarding this application."),
+                "given by the user's input for the 'upper shelf uncertainty'.",
+                "The uncertainty in the lower shelf is represented in the same manner",
+                "except that the distribution is truncated at 0.",
+                "For more details, see the technical manuscript regarding this application."
+                ),
         ))
       })
       
@@ -132,9 +130,9 @@ inputServer <- function(id) {
           return(
             tagList(
               h4("Specify lower and upper shelves"),
-              h6("(Used as fixed values for models with fixed shelves and starting values otherwise)"),
-              numericInput(session$ns('lower_shelf'),paste("Lower Shelf",yvar_name),min(dataset$y),min=0),
-              numericInput(session$ns('upper_shelf'),paste("Upper Shelf",yvar_name),max(dataset$y),min=0)
+              h6("(Used as fixed values for models with fixed shelves and initial values otherwise)"),
+              numericInput(session$ns('lower_shelf'),paste("Lower Shelf",yvar_name),min(dataset$Y),min=0),
+              numericInput(session$ns('upper_shelf'),paste("Upper Shelf",yvar_name),max(dataset$Y),min=0)
             )
           )
         }
@@ -149,15 +147,15 @@ inputServer <- function(id) {
       
         if(input$response_type == 1 && input$lower_shelf_option == "Fixed") {
           tagList(
-            numericInput(session$ns('uls'),"Lower Shelf Uncertainy",value=.5,min=0)
+            numericInput(session$ns('uls'),"Lower Shelf Uncertainty",value=.3,min=0)
           )
         } else if (input$response_type == 2 && input$lower_shelf_option == "Fixed") {
           tagList(
-            numericInput(session$ns('uls'),"Lower Shelf Uncertainy",value=.05,min=0)
+            numericInput(session$ns('uls'),"Lower Shelf Uncertainty",value=.03,min=0)
           )                 
         } else if (input$response_type == 4 && input$lower_shelf_option == "Fixed") {
           tagList(
-            numericInput(session$ns('uls'),"Lower Shelf Uncertainy",value=NA,min=0)
+            numericInput(session$ns('uls'),"Lower Shelf Uncertainty",value=NA,min=0)
           )                 
         } else {
           return(NULL)
@@ -233,21 +231,21 @@ inputServer <- function(id) {
         tagList(
           conditionalPanel(condition = "input.which_models.includes('ht') || input.which_models.includes('aht') || input.which_models.includes('koh')", {
             tagList(
-              h5('Starting Values for Hyperbolic Tangent and Arctangent Models'),
+              h5('Initial Values for Hyperbolic Tangent and Arctangent Models'),
               numericInput(session$ns('c_prov'),'C (\u00B0C)',25),
               numericInput(session$ns('d_prov'),'D',.0001),
               numericInput(session$ns('t0_prov'),'DBTT (\u00B0C)',med_temp))
           },ns=session$ns),
           conditionalPanel(condition = "input.which_models.includes('abur')", {
             tagList(
-              h5('Starting Values for Burr Model'),
+              h5('Initial Values for Burr Model'),
               numericInput(session$ns('k_prov'),'k',1),
               numericInput(session$ns('m_prov'),'m',.1),
               numericInput(session$ns('t0_prov_bur'),'T0 (\u00B0C)',med_temp))
           },ns=session$ns),
           conditionalPanel(condition = "input.which_models.includes('akoh')", {
             tagList(
-              h5('Starting Values for Kohout Model'),
+              h5('Initial Values for Kohout Model'),
               numericInput(session$ns('ck_prov'),'C (\u00B0C)',25),
               numericInput(session$ns('p_prov'),'p',1),
               numericInput(session$ns('dbtt'),'T0 (\u00B0C)',med_temp))
@@ -280,22 +278,22 @@ inputServer <- function(id) {
             need(!is.null(dataset$temperature),
                  "No column named 'temperature'."),
             
-            need(!is.null(dataset$y),
-                 "No column named 'y'."),
+            need(!is.null(dataset$Y),
+                 "No column named 'Y'."),
             
-            need(length(dataset$y) == length(dataset$temperature),
-                 "'temperature' and 'y' different lengths"),
+            need(length(dataset$Y) == length(dataset$temperature),
+                 "'temperature' and 'Y' different lengths"),
            
-            need(length(dataset$y) > 6,
+            need(length(dataset$Y) > 6,
                  "At least 7 observations (rows in .csv file) needed to fit models."),
             
-            need(sum(is.na(c(dataset$y,dataset$temperature))) < 1, 
+            need(sum(is.na(c(dataset$Y,dataset$temperature))) < 1, 
                  "Missing values detected in dataset."),
             
-            need(sum(c(dataset$y,dataset$temperature) == '') < 1, 
+            need(sum(c(dataset$Y,dataset$temperature) == '') < 1, 
                  "Empty cells detected in dataset."),
             
-            need(is.numeric(dataset$y) && is.numeric(dataset$temperature),
+            need(is.numeric(dataset$Y) && is.numeric(dataset$temperature),
                  "Non-numeric values detected in dataset."),
             
             need(length(input$which_models) > 0,
@@ -443,7 +441,7 @@ inputServer <- function(id) {
           ## translating to Jolene's variables
           mod = names(start)
           temp = dataset$temperature
-          yy = dataset$y
+          yy = dataset$Y
           nn = length(yy)
           n.new = 100
           
@@ -464,13 +462,11 @@ inputServer <- function(id) {
           
           # shelf uncertainties
           if (fit == 3) {
-            laa = 0
-            lbb = 0
+            uls = 0
             uus = 0
           
           } else {
-            laa = max(0,lower_shelf - as.numeric(input$uls))
-            lbb = lower_shelf + as.numeric(input$uls)
+            uls = as.numeric(input$uls)
             uus = as.numeric(input$uus)
           }
           
@@ -509,8 +505,7 @@ inputServer <- function(id) {
                             n.new = n.new,
                             nsim = nsim,
                             uus = uus,
-                            laa = laa,
-                            lbb = lbb,
+                            uls = uls,
                             fit = fit,
                             yval = yval,
                             t = t,

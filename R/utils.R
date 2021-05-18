@@ -28,9 +28,7 @@ compute_boot <- function(computedResults) {
                    other_vars$fit,
                    other_vars$lower_shelf,
                    other_vars$upper_shelf,
-                   other_vars$uus,
-                   other_vars$laa,
-                   other_vars$lbb,
+                   other_vars$uls,
                    other_vars$uus,
                    other_vars$nsim)
       

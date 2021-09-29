@@ -4,6 +4,8 @@ NIST has developed a software package that allows users to fit test results obta
 
 For more information, visit: https://www.nist.gov/publications/nist-software-package-obtaining-charpy-transition-curves.
 
+## Running the Application
+
 The easiest way to run and use the application is by first installing Docker (https://docs.docker.com/get-docker/).
 
 Once Docker is installed, download the CharpyCurveFitting repository (at github.com/usnistgov/CharpyCurveFitting, click 'Code' and then 'Download ZIP'), and navigate your terminal to the main directory of the project (the same level as Dockerfile). Then, run the following command to build the image:

@@ -1,5 +1,4 @@
 # CharpyCurveFitting
-R Shiny application to fit various models and quantify uncertainty for temperature transition data
 
 NIST has developed a software package that allows users to fit test results obtained from Charpy or toughness tests as a function of test temperature, thereby obtaining so-called transition curves. Non-linear fitting is available for five regression models, two symmetric and three asymmetric, selected from the literature. Example data sets are also included in the NIST software package. The NIST software is tested on three Charpy absorbed energy datasets. Two datasets correspond to actual impact test results performed on various pipeline steels, while the third is a simulated dataset generated from predetermined model parameters. These datasets allow a thorough demonstration of the NIST software. The software is freely available to the scientific community for research purposes. 
 

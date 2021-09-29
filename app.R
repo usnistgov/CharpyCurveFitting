@@ -67,6 +67,13 @@ server <- function(input, output, session) {
 
     downloadAllServer('download',computedResults,fits_info)
     
+    if (!interactive()) {
+        session$onSessionEnded(function() {
+            stopApp()
+            q("no")
+        })
+    }
+    
 }
 
 shinyApp(ui = ui, server = server)

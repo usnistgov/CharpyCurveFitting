@@ -5,7 +5,7 @@ FROM rocker/shiny:4.1.0
 RUN apt-get update
 
 # copy necessary files
-COPY ./ /
+COPY . /srv/shiny-server/
 
 # install packages
 RUN Rscript -e 'install.packages("shinythemes")'
@@ -22,5 +22,4 @@ RUN Rscript -e 'install.packages("DT")'
 # expose port
 EXPOSE 3838
 
-CMD R -e 'shiny::runApp(port = 3838, host = "0.0.0.0")'
-# app should run from 'inherited' RUN command from rocker/shiny
+# app should run from 'inherited' CMD shiny_server.sh command from rocker/shiny

@@ -1,5 +1,5 @@
 # Base image https://hub.docker.com/u/rocker/
-FROM rocker/shiny:4.1.0
+FROM rocker/shiny:4.1.1
 
 ## update system libraries and install wget
 RUN apt-get update

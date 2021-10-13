@@ -4,7 +4,7 @@ NIST has developed a software package that allows users to fit test results obta
 
 Along with the R Shiny application, two macro-enabled excel spreadsheets are providied:
 
-1. [Macro-enabled Excel spreadsheet Establishment of initial values for Charpy regressions.xlsm](excel_files/Establishment of initial values for Charpy regressions.xlsm)
+1. [Macro-enabled Excel spreadsheet Establishment of initial values for Charpy regressions.xlsm](license.md)
 This spreadsheet can be used to determine reasonable initial values for the parameters of three Charpy regression models: AHT (asymmetric hyperbolic tangent), BUR (asymmetric Burr model), and KHT (asymmetric Kohout model). The effect of changing parameter values can be immediately appreciated in graphical form, by comparing the corresponding regression curve with the experimental data points.
 
 2. [Macro-enabled Excel spreadsheet Charpy data regression.xlsm](excel_files/Excel spreadsheet Charpy data regression.xlsm)

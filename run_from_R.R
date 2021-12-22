@@ -9,4 +9,4 @@ if(length(needed_packages) > 0) {
 
 library(shiny)
 
-runGitHub('CharpyCurveFitting','usnistgov',launch.browser=TRUE)
+runApp(launch.browser=TRUE)

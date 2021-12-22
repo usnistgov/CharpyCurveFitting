@@ -17,11 +17,11 @@ For more information, visit: https://www.nist.gov/publications/nist-software-pac
 
 There are two ways to run the Charpy application locally. 
 
-### Running from R on Windows
+### Option 1: Running from R on Windows
 
 To run the application using R on your computer, you will first need to install R [here](https://www.r-project.org/). Then, download a zip file of the https://github.com/usnistgov/CharpyCurveFitting repository by clicking the green 'Code' button, and then 'Download ZIP'. After unzipping the file, click the run_app.bat file (if you are using Windows), and the app should run. Note that the first time the app runs, it may take some time, as the necessary packages will need to be installed if they aren't already. Afterwards, the app should run almost instantly.
 
-### Containerized using Docker
+### Option 2: Containerized using Docker
 
 To run the Charpy application from within a Docker container you will first need to install Docker (https://docs.docker.com/get-docker/).
 

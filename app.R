@@ -25,6 +25,13 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
     #          "Contact david.newton@nist.gov for information on using the application in",
     #          "the meantime (updated 5/18/2021).")),
     # br(),
+    
+    HTML(
+      '<head>
+      <link rel="stylesheet" href="https://pages.nist.gov/nist-header-footer/css/nist-combined.css">
+        <script src="https://pages.nist.gov/nist-header-footer/js/nist-header-footer.js" type="text/javascript" defer="defer"></script>
+      </head>'
+    ),
 
     titlePanel("Transition Curve Fitting Tool"),
 

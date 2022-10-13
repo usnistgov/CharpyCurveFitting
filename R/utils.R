@@ -159,7 +159,7 @@ correct_names <- function(names) {
   
   for(ii in 1:length(names)) {
     
-    # HT, AHT, BUR, ACT, KHT
+    # HT, AHT, BUR, ACT, KHTs
     
     if(grepl('^ht',names[ii])) {
       outnames[ii] = 'HT'

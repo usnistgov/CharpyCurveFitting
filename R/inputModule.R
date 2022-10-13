@@ -525,6 +525,11 @@ inputServer <- function(id) {
         
         computedResults = list(mstats=mstats,results=results,other_vars=other_vars)
         
+        validate(
+          need(!all(is.na(mstats$rmse)),
+               "None of the selected models converged; try rerunning with different settings.")
+        )
+        
         if(length(mod2) > .5) {
           boots_res = compute_boot(computedResults)
           computedResults$boots = boots_res$bout

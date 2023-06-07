@@ -1,6 +1,6 @@
 ---
 title: "Transition Curve Fitting Tool: Results"
-output: pdf_document
+output: html_document
 params:
   plot_fits_out: NA
   coef_table_out: NA

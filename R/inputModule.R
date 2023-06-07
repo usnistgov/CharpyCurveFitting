@@ -4,7 +4,7 @@ inputUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    textInput(ns('userID'),'Data ID',placeholder="Material, Condition, Specimen Type, etc."),
+    textInput(ns('userID'),'Data Information',placeholder="Material, Condition, Specimen Type, etc."),
     br(),
     fileInput(ns('datafile'),'Upload csv file',accept=c('.csv','.txt')),
     downloadButton(ns('download'), label = "Download Template File", class = NULL),
@@ -38,12 +38,12 @@ inputUI <- function(id) {
       selectInput(ns('lower_shelf_option'),
                   'Lower Shelf:',
                   choices=c('Fixed','Variable'),
-                  selected='Fixed'),
+                  selected='Variable'),
       
       selectInput(ns('upper_shelf_option'),
                   'Upper Shelf:',
                   choices=c('Fixed','Variable'),
-                  selected='Fixed'),ns=ns),
+                  selected='Variable'),ns=ns),
     
     conditionalPanel(condition = 'input.response_type == 3',
        selectInput(ns('lower_shelf_option'),
@@ -267,281 +267,110 @@ inputServer <- function(id) {
       userInputs <- eventReactive(input$goButton, {
         # format user inputs
         req(input$datafile)
-        start = list()
-        
-        withProgress(message = "Checking Inputs...",value=0, {
-          
-
-          dataset = read_csv(input$datafile$datapath)
-          
-          validate(
-            need(!is.null(dataset$temperature),
-                 "No column named 'temperature'."),
-            
-            need(!is.null(dataset$Y),
-                 "No column named 'Y'."),
-            
-            need(length(dataset$Y) == length(dataset$temperature),
-                 "'temperature' and 'Y' different lengths"),
-           
-            need(length(dataset$Y) > 6,
-                 "At least 7 observations (rows in .csv file) needed to fit models."),
-            
-            need(sum(is.na(c(dataset$Y,dataset$temperature))) < 1, 
-                 "Missing values detected in dataset."),
-            
-            need(sum(c(dataset$Y,dataset$temperature) == '') < 1, 
-                 "Empty cells detected in dataset."),
-            
-            need(is.numeric(dataset$Y) && is.numeric(dataset$temperature),
-                 "Non-numeric values detected in dataset."),
-            
-            need(length(input$which_models) > 0,
-                 "No models selected." ),
-            
-            need(as.numeric(c(input$c_prov,input$d_prov,input$t0_prov,
-                              input$k_prov,input$m_prov,input$ck_prov,
-                              input$p_prov,input$dbtt,input$t0_prov_bur,
-                              input$upper_shelf,input$lower_shelf)) %>%
-                 is.numeric(),
-                 "Non-numeric parameters detected."), 
-            
-            need(!any(is.na(as.numeric(c(input$c_prov,input$d_prov,input$t0_prov,
-                                         input$k_prov,input$m_prov,input$ck_prov,
-                                         input$p_prov,input$dbtt,input$t0_prov_bur,
-                                         input$upper_shelf,input$lower_shelf)))),
-                 "Empty parameter fields detected."),
-            
-            need(input$lower_shelf < input$upper_shelf,
-                 "Lower shelf value must be less than the upper shelf value."),
-            
-            need(!is.na(input$uls),
-                 "Missing value detected in lower shelf uncertainty."),
-            
-            need(input$uls >= 0 && input$uus >= 0,
-                 "Shelf uncertainties must be non-negative")
-            
-          )
-          
-  
-          c_prov = as.numeric(input$c_prov)
-          d_prov = as.numeric(input$d_prov)
-          t0_prov = as.numeric(input$t0_prov)
-          t0_prov_bur = as.numeric(input$t0_prov_bur)
-          k_prov = as.numeric(input$k_prov)
-          m_prov = as.numeric(input$m_prov)
-          ck_prov = as.numeric(input$ck_prov)
-          p_prov = as.numeric(input$p_prov)
-          dbtt = as.numeric(input$dbtt)
-          
-          fit = as.numeric(input$response_type)
-          
-          # for SFA, shelves fixed at 100 and 0
-          upper_shelf = ifelse(fit == 3,100,as.numeric(input$upper_shelf))
-          lower_shelf = ifelse(fit == 3,0,as.numeric(input$lower_shelf))
-          
-          # number bootstrap
-          nsim = 1000
-          conf_level = as.numeric(input$conf_level)
-          
-          shelves_in = c(input$lower_shelf_option,input$upper_shelf_option)
-          
-          if(all(shelves_in == c('Fixed','Fixed') )) {
-            shelves = 'bsf'
-          
-          } else if(all(shelves_in == c('Fixed','Variable') )) {
-            shelves = 'lsf'
-            
-          } else if(all(shelves_in == c('Variable','Fixed') )) {
-            shelves = 'usf'
-          
-          } else {
-            shelves = 'snf'
-          }
-          
-          
-          if('ht' %in% input$which_models) {
-            if(shelves == 'snf') {
-              start$ht    = c(c=c_prov, t0=t0_prov, lse=lower_shelf, use=upper_shelf)
-            
-            } else if(shelves == 'bsf') {
-              start$htf   = c(c=c_prov, t0=t0_prov)
-              
-            } else if(shelves == 'usf') {
-              start$htuf  = c(c=c_prov, t0=t0_prov, lse=lower_shelf)
-            
-            } else if(shelves == 'lsf') {
-              start$htlf  = c(c=c_prov, t0=t0_prov, use=upper_shelf)
-            }
-            
-          }
-          
-          if('aht' %in% input$which_models) {
-            if(shelves == 'snf') {
-              start$aht   = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf, use=upper_shelf)
-              
-            } else if(shelves == 'bsf') {
-              start$ahtf  = c(c=c_prov, t0=t0_prov, d=d_prov)
-            
-            } else if(shelves == 'usf') {
-              start$ahtuf = c(c=c_prov, t0=t0_prov, d=d_prov, lse=lower_shelf)
-            
-            } else if(shelves == 'lsf') {
-              start$ahtlf = c(c=c_prov, t0=t0_prov, d=d_prov, use=upper_shelf)
-            }
-          }
-          
-          if('abur' %in% input$which_models) {
-            if(shelves == 'snf') {
-              start$abur   = c(k=k_prov, t0=t0_prov_bur, m=m_prov, lse=lower_shelf, use=upper_shelf)
-              
-            } else if(shelves == 'bsf') {
-              start$aburf  = c(k=k_prov, t0=t0_prov_bur, m=m_prov) 
-              
-            } else if(shelves == 'usf') {
-              start$aburuf = c(k=k_prov, t0=t0_prov_bur, m=m_prov, lse=lower_shelf) 
-            
-            } else if(shelves == 'lsf') {
-              start$aburlf = c(k=k_prov, t0=t0_prov_bur, m=m_prov, use=upper_shelf) 
-            }
-          }
-          
-          if('koh' %in% input$which_models) {
-            if(shelves == 'snf') {
-              start$koh   = c(c=c_prov, DBTT=t0_prov, lse=lower_shelf, use=upper_shelf)
-              
-            } else if(shelves == 'bsf') {
-              start$kohf  = c(c=c_prov, DBTT=t0_prov)
-              
-            } else if(shelves == 'usf') {
-              start$kohuf = c(c=c_prov, DBTT=t0_prov, lse=lower_shelf)
-            
-            } else if(shelves == 'lsf') {
-              start$kohlf = c(c=c_prov, DBTT=t0_prov, use=lower_shelf)
-            }
-          }
-          
-          if('akoh' %in% input$which_models) {
-            if(shelves == 'snf') {
-              start$akoh   = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf, use=upper_shelf )
-            
-            } else if(shelves == 'bsf') {
-              start$akohf  = c(c=ck_prov, t0=dbtt, p=p_prov)
-              
-            } else if(shelves == 'usf') {
-              start$akohuf = c(c=ck_prov, t0=dbtt, p=p_prov, lse=lower_shelf)
-            
-            } else if(shelves == 'lsf') {
-              start$akohlf = c(c=ck_prov, t0=dbtt, p=p_prov, use=lower_shelf)
-            }
-          }
-          
-          incProgress(amount=.5)
-  
-          ## translating to Jolene's variables
-          mod = names(start)
-          temp = dataset$temperature
-          yy = dataset$Y
-          nn = length(yy)
-          n.new = 100
-          
-          
-          
-          if(fit < 4) {
-            yvar_name = c('KV (J)','LE (mm)','SFA (%)')[fit]
-          } else {
-            yvar_name = input$custom_param
-          }
-          
-          if(input$num_temps > 0) {
-            yval = as.numeric(c(input$respval1,input$respval2,input$respval3)[1:input$num_temps])
-          
-          } else {
-            yval = NA
-          }
-          
-          # shelf uncertainties
-          if (fit == 3) {
-            uls = 0
-            uus = 0
-          
-          } else {
-            uls = as.numeric(input$uls)
-            uus = as.numeric(input$uus)
-          }
-          
-          
-          # create new temperature values for plotting
-          t = seq(min(temp), max(temp), length.out=n.new)
-          newt = data.frame(t)
-          names(newt) = c("temp")
-          
-          # Jolene's code:
-          # cat('fitting')
-          fitres = fits(mod,start,lower_shelf,upper_shelf,yy,temp,fit)
-          mstats = fitres[[2]]
-          results = fitres[[1]]
-          names(results) = mod
-          ################################
-          # keep models with valid results
-          nmod = length(mod)
-          keepid = ifelse(mstats$conv %in% c(1,2,3), 1, 0)
-          
-          # save fit message for printing
-          mod.not = data.frame(mstats$mod, keepid, mstats$mess)
-          mod.not = mod.not[mod.not$keepid==0, c(1,3)]
-          names(mod.not) = c("Model","Convergence Message")
-          #mod.not
-          
-          # save model stats for models that converged
-          mstats2 = mstats[keepid==1, 1:5]
-          mod2 = as.character(mstats2$mod)
     
-          
-          other_vars = list(mod = mod,
-                            temp = temp,
-                            yy = yy,
-                            nn = nn,
-                            n.new = n.new,
-                            nsim = nsim,
-                            uus = uus,
-                            uls = uls,
-                            fit = fit,
-                            yval = yval,
-                            t = t,
-                            newt = newt,
-                            upper_shelf = upper_shelf,
-                            lower_shelf = lower_shelf,
-                            nsim = nsim,
-                            mstats2 = mstats2,
-                            mod2 = mod2,
-                            conf_level = conf_level,
-                            alpha = 1 - conf_level,
-                            start = start,
-                            shelves=shelves,
-                            yvar_name=yvar_name,
-                            userID=input$userID)
-        })
-        
-        computedResults = list(mstats=mstats,results=results,other_vars=other_vars)
+        dataset = read_csv(input$datafile$datapath)
         
         validate(
-          need(!all(is.na(mstats$rmse)),
-               "None of the selected models converged; try rerunning with different settings.")
+          need(!is.null(dataset$temperature),
+               "No column named 'temperature'."),
+          
+          need(!is.null(dataset$Y),
+               "No column named 'Y'."),
+          
+          need(length(dataset$Y) == length(dataset$temperature),
+               "'temperature' and 'Y' different lengths"),
+         
+          need(length(dataset$Y) > 6,
+               "At least 7 observations (rows in .csv file) needed to fit models."),
+          
+          need(sum(is.na(c(dataset$Y,dataset$temperature))) < 1, 
+               "Missing values detected in dataset."),
+          
+          need(sum(c(dataset$Y,dataset$temperature) == '') < 1, 
+               "Empty cells detected in dataset."),
+          
+          need(is.numeric(dataset$Y) && is.numeric(dataset$temperature),
+               "Non-numeric values detected in dataset."),
+          
+          need(length(input$which_models) > 0,
+               "No models selected." ),
+          
+          need(as.numeric(c(input$c_prov,input$d_prov,input$t0_prov,
+                            input$k_prov,input$m_prov,input$ck_prov,
+                            input$p_prov,input$dbtt,input$t0_prov_bur,
+                            input$upper_shelf,input$lower_shelf)) %>%
+               is.numeric(),
+               "Non-numeric parameters detected."), 
+          
+          need(!any(is.na(as.numeric(c(input$c_prov,input$d_prov,input$t0_prov,
+                                       input$k_prov,input$m_prov,input$ck_prov,
+                                       input$p_prov,input$dbtt,input$t0_prov_bur,
+                                       input$upper_shelf,input$lower_shelf)))),
+               "Empty parameter fields detected."),
+          
+          need(input$lower_shelf < input$upper_shelf,
+               "Lower shelf value must be less than the upper shelf value.")
+          
         )
         
-        if(length(mod2) > .5) {
-          boots_res = compute_boot(computedResults)
-          computedResults$boots = boots_res$bout
-          computedResults$coef_ints = boots_res$coef_ints
-          computedResults$tpout = boots_res$tpout
-          computedResults$dbtt = boots_res$dbtt
-        }
+
+        c_prov = as.numeric(input$c_prov)
+        d_prov = as.numeric(input$d_prov)
+        t0_prov = as.numeric(input$t0_prov)
+        t0_prov_bur = as.numeric(input$t0_prov_bur)
+        k_prov = as.numeric(input$k_prov)
+        m_prov = as.numeric(input$m_prov)
+        ck_prov = as.numeric(input$ck_prov)
+        p_prov = as.numeric(input$p_prov)
+        dbtt = as.numeric(input$dbtt)
+        fit = as.numeric(input$response_type)
+        lower_shelf_option = input$lower_shelf_option
+        upper_shelf_option = input$upper_shelf_option
+        conf_level = as.numeric(input$conf_level)
+        upper_shelf = as.numeric(input$upper_shelf)
+        lower_shelf = as.numeric(input$lower_shelf)
+        which_models = input$which_models
+        num_temps = input$num_temps
+        respval1 = input$respval1
+        respval2 = input$respval2
+        respval3 = input$respval3
+        custom_param = input$custom_param
+        uls_in = ifelse(is.null(input$uls),NA,as.numeric(input$uls))
+        uus_in = ifelse(is.null(input$uus),NA,as.numeric(input$uus))
+        userID = input$userID
         
-        return(computedResults)
+        nboot = 2000
+        
+        computedResults = run_charpy_analysis(dataset,
+                                              fit, # 1=KV, 2=LE, 3=SFA, 4=other,
+                                              nboot,
+                                              c_prov,
+                                              d_prov,
+                                              t0_prov, 
+                                              t0_prov_bur,
+                                              k_prov,
+                                              m_prov,
+                                              ck_prov, 
+                                              p_prov,
+                                              dbtt,
+                                              lower_shelf_option,
+                                              upper_shelf_option,
+                                              conf_level,
+                                              upper_shelf,
+                                              lower_shelf,
+                                              which_models,
+                                              num_temps,
+                                              respval1,
+                                              respval2,
+                                              respval3,
+                                              custom_param, 
+                                              uls_in,
+                                              uus_in,
+                                              userID)
+      
+      return(computedResults)
         
       })
-      
     }
   )
 }

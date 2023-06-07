@@ -17,14 +17,6 @@ source('R/downloadAllModule.R')
 
 
 ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
-                        
-    # 
-    # br(),
-    # h4(paste("You have accessed the url for the 'Transition Curve Fitting Tool'.",
-    #          "Usage of shinyapps.io for this application is currently pending NIST approval.",
-    #          "Contact david.newton@nist.gov for information on using the application in",
-    #          "the meantime (updated 5/18/2021).")),
-    # br(),
     
     HTML(
       '<head>

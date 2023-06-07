@@ -56,7 +56,7 @@ plotFitsServer <- function(id,computedResults) {
       output$fit_metrics_table <- DT::renderDataTable({
         
         withProgress(message="Creating Metrics Table...",value=.5, {
-          res = create_fit_metrics_table(computedResults)
+          res = create_fit_metrics_table(computedResults())
         })
         
         res
@@ -67,7 +67,7 @@ plotFitsServer <- function(id,computedResults) {
       output$tpout <- DT::renderDataTable({
         
         withProgress(message="Creating Temperature Table...",value=.5, {
-          res = plot_tpout(computedResults)
+          res = plot_tpout(computedResults())
         })  
         
         res
@@ -80,7 +80,7 @@ plotFitsServer <- function(id,computedResults) {
         req(input$fits_to_show)
         
         withProgress(message="Creating Fitted Model Plot...",value=.5, {
-          res = plot_fits(computedResults,input$fits_to_show,input$show_CIs)
+          res = plot_fits(computedResults(),input$fits_to_show,input$show_CIs)
         })
         
         res
@@ -95,7 +95,7 @@ plotFitsServer <- function(id,computedResults) {
         }
         
         withProgress(message="Creating Coefficients Table...",value=.5, {
-          res = create_coefs_table(computedResults)
+          res = create_coefs_table(computedResults())
         })
         
         res
@@ -108,7 +108,7 @@ plotFitsServer <- function(id,computedResults) {
       output$dbtt_table <- DT::renderDataTable({
       
         withProgress(message="Creating DBTT Table...",value=.5, {
-          res = create_dbtt_table(computedResults)
+          res = create_dbtt_table(computedResults())
         })
         
         res
@@ -162,7 +162,7 @@ plotResidsServer <- function(id,computedResults) {
       output$nlsres_plot = renderPlot({
         req(input$which_model)
         
-        plot_resids(computedResults,input$which_model)
+        plot_resids(computedResults(),input$which_model)
       })
       
     }

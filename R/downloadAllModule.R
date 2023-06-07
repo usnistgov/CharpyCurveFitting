@@ -23,16 +23,16 @@ downloadAllServer <- function(id,computedResults,fits_info) {
       
       output$download_all <- downloadHandler(
         filename = function() {
-          paste("ResultsDownload.pdf")
+          paste("ResultsDownload.html")
         },
         
         content = function(file) {
           
-          plot_fits_out = plot_fits(computedResults,fits_info()$fits_to_show,fits_info()$show_CIs)
-          coef_table_out = create_coefs_table(computedResults)
-          fit_metrics_table_out = create_fit_metrics_table(computedResults)
-          dbtt_table_out = create_dbtt_table(computedResults)
-          plot_tpout_out = plot_tpout(computedResults)
+          plot_fits_out = plot_fits(computedResults(),fits_info()$fits_to_show,fits_info()$show_CIs)
+          coef_table_out = create_coefs_table(computedResults())
+          fit_metrics_table_out = create_fit_metrics_table(computedResults())
+          dbtt_table_out = create_dbtt_table(computedResults())
+          plot_tpout_out = plot_tpout(computedResults())
           
           other_vars = computedResults()$other_vars
           results = computedResults()$results
@@ -49,7 +49,7 @@ downloadAllServer <- function(id,computedResults,fits_info) {
                                             results = results))
           })
           
-          file.copy('./markdown/ResultsDownload.pdf',file)
+          file.copy('./markdown/ResultsDownload.html',file)
           
         }
       )

@@ -1,7 +1,7 @@
 plot_fits <- function(computedResults,fits_to_show,show_CIs) {
-  mstats = computedResults()$mstats
-  results = computedResults()$results
-  other_vars = computedResults()$other_vars
+  mstats = computedResults$mstats
+  results = computedResults$results
+  other_vars = computedResults$other_vars
   #other_vars: mod, temp, yy, nn, n.new, nsim, uls, uus, fit, yval, t, newt,
   #            upper_shelf, lower_shelf
   
@@ -76,8 +76,8 @@ plot_fits <- function(computedResults,fits_to_show,show_CIs) {
           plot.title = element_text(size=20),
           legend.title = element_text(size=20))
   
-  if(show_CIs == 'Yes' && !is.null(computedResults()$boots)) {
-    boot_data = computedResults()$boots
+  if(show_CIs == 'Yes' && !is.null(computedResults$boots)) {
+    boot_data = computedResults$boots
     boot_data$model = correct_names(boot_data$model)
     boot_data = boot_data[boot_data$model %in% fits_to_show,]
     p = p + geom_ribbon(data=boot_data, aes(x=x, y=f, ymin=lwr.conf, ymax=upr.conf, fill=model), 
@@ -90,7 +90,7 @@ plot_fits <- function(computedResults,fits_to_show,show_CIs) {
 
 create_coefs_table <- function(computedResults) {
   
-  other_vars = computedResults()$other_vars
+  other_vars = computedResults$other_vars
   
   num_mods = length(other_vars$mod2)
   mod_names = other_vars$mod2
@@ -101,7 +101,7 @@ create_coefs_table <- function(computedResults) {
     
     params = names(other_vars$start[[ mod_names[ii] ]])
     this_df = data.frame(params = params)
-    coef_ints = round(computedResults()$coef_ints[[ mod_names[ii] ]],4)
+    coef_ints = round(computedResults$coef_ints[[ mod_names[ii] ]],4)
     
     this_df = cbind(mod_names[ii],this_df,coef_ints[1:nrow(this_df),])
     names(this_df) = c("Model","Parameter","Estimate","S.E.","Lower Cl", "Upper Cl")
@@ -129,7 +129,7 @@ create_coefs_table <- function(computedResults) {
 
 
 create_fit_metrics_table <- function(computedResults) {
-  mstats = computedResults()$mstats
+  mstats = computedResults$mstats
   
   outdf = mstats[,2:6]
   outdf$conv = ifelse(outdf$conv %in% c(1,2,3),'Yes','No')
@@ -142,7 +142,7 @@ create_fit_metrics_table <- function(computedResults) {
 
 create_dbtt_table <- function(computedResults) {
   
-  outdf = dplyr::bind_rows(computedResults()$dbtt)
+  outdf = dplyr::bind_rows(computedResults$dbtt)
   outdf$Model = correct_names(outdf$Model)
   outdf
   
@@ -150,12 +150,12 @@ create_dbtt_table <- function(computedResults) {
 
 
 plot_tpout <- function(computedResults) {
-  if(length(computedResults()$tpout) == 0) {
+  if(length(computedResults$tpout) == 0) {
     return(NULL)
   }
   
-  outdf = dplyr::bind_rows(computedResults()$tpout)
-  outdf = cbind( rep(names(computedResults()$tpout),each=length(computedResults()$other_vars$yval)) ,outdf)
+  outdf = dplyr::bind_rows(computedResults$tpout)
+  outdf = cbind( rep(names(computedResults$tpout),each=length(computedResults$other_vars$yval)) ,outdf)
   names(outdf) = c('Model','Ref Value','Temperature Est', 'SE','Lower Cl','Upper Cl')
   outdf$Model = correct_names(outdf$Model)
   outdf
@@ -163,8 +163,8 @@ plot_tpout <- function(computedResults) {
 
 
 plot_resids <- function(computedResults,model_name) {
-  other_vars = computedResults()$other_vars
-  res = computedResults()$results[[model_name]]
+  other_vars = computedResults$other_vars
+  res = computedResults$results[[model_name]]
   if(is.null(res)) {
     return(NULL)
   }

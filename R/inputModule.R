@@ -4,7 +4,7 @@ inputUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    textInput(ns('userID'),'Data Information',placeholder="Material, Condition, Specimen Type, etc."),
+    textInput(ns('userID'),'Data Set Information',placeholder="Material, Condition, Specimen Type, etc."),
     br(),
     fileInput(ns('datafile'),'Upload csv file',accept=c('.csv','.txt')),
     downloadButton(ns('download'), label = "Download Template File", class = NULL),
@@ -341,6 +341,8 @@ inputServer <- function(id) {
         
         nboot = 2000
         
+        withProgress({
+        
         computedResults = run_charpy_analysis(dataset,
                                               fit, # 1=KV, 2=LE, 3=SFA, 4=other,
                                               nboot,
@@ -367,6 +369,8 @@ inputServer <- function(id) {
                                               uls_in,
                                               uus_in,
                                               userID)
+        
+        },message="Running Analysis...")
       
       return(computedResults)
         

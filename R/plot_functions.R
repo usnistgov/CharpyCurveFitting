@@ -106,6 +106,9 @@ create_coefs_table <- function(computedResults) {
     this_df = cbind(mod_names[ii],this_df,coef_ints[1:nrow(this_df),])
     names(this_df) = c("Model","Parameter","Estimate","S.E.","Lower Cl", "Upper Cl")
     
+    this_df$Parameter[grepl('lse',this_df$Parameter,TRUE)] = "ls"
+    this_df$Parameter[grepl('use',this_df$Parameter,TRUE)] = "us"
+
     outlist[[ii]] = this_df
     
   }

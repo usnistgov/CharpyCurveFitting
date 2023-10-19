@@ -7,25 +7,25 @@ library(minpack.lm)
 library(ggplot2)
 library(pracma)
 library(truncnorm)
-library(tinytex)
+#library(tinytex)
 
-source('R/inputModule.R')
-source('R/plotModules.R')
-source('R/utils.R')
-source('R/functions_4_more_fun_v12.R')
-source('R/downloadAllModule.R')
+source("R/inputModule.R")
+source("R/plotModules.R")
+source("R/utils.R")
+source("R/functions_4_more_fun_v12.R")
+source("R/downloadAllModule.R")
+source("R/utils.R")
 
+ui <- shinyUI(fluidPage(id='fullpage',#theme=shinytheme('spacelab'),
+                                  
+  tags$link(rel="stylesheet",href='my_style.css'),
+  tags$link(rel='stylesheet',href='nist_style.css'),
+  tags$head(tags$link(rel="shortcut icon", href="favicon.ico")),
+  tags$head(HTML("<title>Transition Curve Fitting</title>")),
+  
+  tags$div(HTML(nist_header_html)),
 
-ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
-    
-    HTML(
-      '<head>
-      <link rel="stylesheet" href="https://pages.nist.gov/nist-header-footer/css/nist-combined.css">
-        <script src="https://pages.nist.gov/nist-header-footer/js/nist-header-footer.js" type="text/javascript" defer="defer"></script>
-      </head>'
-    ),
-
-    titlePanel("Transition Curve Fitting Tool"),
+    HTML("<h1>&nbsp Transition Curve Fitting Tool </h1>"),
 
     sidebarLayout(
         sidebarPanel(
@@ -41,8 +41,15 @@ ui <- shinyUI(fluidPage(theme=shinytheme('spacelab'),
 
             )
         )
-    )
-))
+    ),
+  
+  tags$div(HTML(nist_footer_html))
+  
+  )
+
+  
+
+)
 
 server <- function(input, output, session) {
 
@@ -55,7 +62,7 @@ server <- function(input, output, session) {
         appendTab(inputId='thePanel',
                   tabPanel('Download',
                            br(),
-                           h5(paste("Click the button to generate a pdf file of all tables and plots",
+                           h5(paste("Click the button to generate an html file of all tables and plots",
                                     "displayed throughout the application.")),
                            downloadAllUI('download')))
     })

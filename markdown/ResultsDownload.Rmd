@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r results='asis'}
-cat(paste('# User Information:',other_vars$userID,'\n'))
+cat(paste('# Data Set Information:',other_vars$userID,'\n'))
 cat(paste('## Date:', Sys.Date(),'\n'))
 ```
 

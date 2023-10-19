@@ -48,6 +48,7 @@ plotFitsServer <- function(id,computedResults) {
           return(NULL)
         }
         ns <- session$ns
+        
         selectInput(ns('show_CIs'),'Show Confidence Bounds?',
                     choices = c('Yes','No'),
                     selected = 'No')
@@ -59,7 +60,7 @@ plotFitsServer <- function(id,computedResults) {
           res = create_fit_metrics_table(computedResults())
         })
         
-        res
+        return(res)
         
       }, options = list(searching = FALSE, paging=FALSE))
                         #columnDefs = list(list(className = 'dt-center', targets = '_all'))))
@@ -70,20 +71,22 @@ plotFitsServer <- function(id,computedResults) {
           res = plot_tpout(computedResults())
         })  
         
-        res
+        return(res)
         
       }, options = list(searching=FALSE, paging=FALSE))
                         #columnDefs = list(list(className = 'dt-center', targets = '_all'))))
       
       output$plot_fits <- renderPlot({
         
-        req(input$fits_to_show)
+        if(is.null(input$fits_to_show)) {
+          return(NULL)
+        }
         
         withProgress(message="Creating Fitted Model Plot...",value=.5, {
           res = plot_fits(computedResults(),input$fits_to_show,input$show_CIs)
         })
         
-        res
+        return(res)
         
       })
       
@@ -98,7 +101,7 @@ plotFitsServer <- function(id,computedResults) {
           res = create_coefs_table(computedResults())
         })
         
-        res
+        return(res)
         
         
       }, options = list(searching=FALSE, paging=FALSE))
@@ -111,7 +114,7 @@ plotFitsServer <- function(id,computedResults) {
           res = create_dbtt_table(computedResults())
         })
         
-        res
+        return(res)
         
       },options = list(searching=FALSE, paging=FALSE))
       
@@ -155,11 +158,13 @@ plotResidsServer <- function(id,computedResults) {
         mods = mods[mods %in% computedResults()$other_vars$mod2]
         myl = as.list(mods)
         names(myl) = correct_names(mods) #e.g. 'HT':htf
-        selectInput(ns('which_model'),'Model',choices=myl)
+        return(selectInput(ns('which_model'),'Model',choices=myl))
       })
       
       output$nlsres_plot = renderPlot({
-        req(input$which_model)
+        if(is.null(input$which_model)) {
+          return(NULL)
+        }
         
         plot_resids(computedResults(),input$which_model)
       })

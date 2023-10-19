@@ -114,7 +114,6 @@ plotFitsServer <- function(id,computedResults) {
         res
         
       },options = list(searching=FALSE, paging=FALSE))
-                       #columnDefs = list(list(className = 'dt-center', targets = '_all'))))
       
       
       fits_info = reactive({

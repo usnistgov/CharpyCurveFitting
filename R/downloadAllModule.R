@@ -23,7 +23,7 @@ downloadAllServer <- function(id,computedResults,fits_info) {
       
       output$download_all <- downloadHandler(
         filename = function() {
-          paste("ResultsDownload.html")
+          paste("ResultsDownload.pdf")
         },
         
         content = function(file) {
@@ -49,7 +49,7 @@ downloadAllServer <- function(id,computedResults,fits_info) {
                                             results = results))
           })
           
-          file.copy('./markdown/ResultsDownload.html',file)
+          file.copy('./markdown/ResultsDownload.pdf',file)
           
         }
       )

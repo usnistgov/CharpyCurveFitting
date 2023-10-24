@@ -37,7 +37,12 @@ plotFitsServer <- function(id,computedResults) {
     function(input, output, session) {
       
       output$which_fits_ui <- renderUI({
-        ns <- session$ns
+        
+        if(is.null(computedResults()$mstats)) {
+          return(NULL)
+        }
+        
+        ns = session$ns
         mods = computedResults()$mstats$mod
         mods = mods[mods %in% computedResults()$other_vars$mod2]
         checkboxGroupInput(ns('fits_to_show'),'Fits to Show',choices=correct_names(mods),selected=correct_names(mods))
@@ -56,6 +61,10 @@ plotFitsServer <- function(id,computedResults) {
       
       output$fit_metrics_table <- DT::renderDataTable({
         
+        if(is.null(computedResults()$mstats)) {
+          return(NULL)
+        }
+        
         withProgress(message="Creating Metrics Table...",value=.5, {
           res = create_fit_metrics_table(computedResults())
         })
@@ -67,6 +76,10 @@ plotFitsServer <- function(id,computedResults) {
       
       output$tpout <- DT::renderDataTable({
         
+        if(is.null(computedResults()$mstats)) {
+          return(NULL)
+        }
+        
         withProgress(message="Creating Temperature Table...",value=.5, {
           res = plot_tpout(computedResults())
         })  
@@ -77,6 +90,10 @@ plotFitsServer <- function(id,computedResults) {
                         #columnDefs = list(list(className = 'dt-center', targets = '_all'))))
       
       output$plot_fits <- renderPlot({
+        
+        if(is.null(computedResults()$mstats)) {
+          return(NULL)
+        }
         
         if(is.null(input$fits_to_show)) {
           return(NULL)
@@ -109,6 +126,10 @@ plotFitsServer <- function(id,computedResults) {
       
       
       output$dbtt_table <- DT::renderDataTable({
+        
+        if(is.null(computedResults()$mstats)) {
+          return(NULL)
+        }
       
         withProgress(message="Creating DBTT Table...",value=.5, {
           res = create_dbtt_table(computedResults())
@@ -153,6 +174,11 @@ plotResidsServer <- function(id,computedResults) {
     function(input,output,session) {
       
       output$which_model = renderUI({
+        
+        if(is.null(computedResults()$mstats)) {
+          return(NULL)
+        }
+        
         ns <- session$ns
         mods = computedResults()$mstats$mod
         mods = mods[mods %in% computedResults()$other_vars$mod2]

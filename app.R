@@ -1,5 +1,4 @@
 library(shiny)
-library(shinythemes)
 library(readr)
 library(stringr)
 library(dplyr)
@@ -7,8 +6,8 @@ library(minpack.lm)
 library(ggplot2)
 library(pracma)
 library(truncnorm)
-#library(tinytex)
-
+# library(tinytex)
+# 
 source("R/inputModule.R")
 source("R/plotModules.R")
 source("R/utils.R")
@@ -16,7 +15,7 @@ source("R/functions_4_more_fun_v12.R")
 source("R/downloadAllModule.R")
 source("R/utils.R")
 
-ui <- shinyUI(fluidPage(id='fullpage',#theme=shinytheme('spacelab'),
+ui <- shinyUI(fluidPage(id='fullpage',
                                   
   tags$link(rel="stylesheet",href='my_style.css'),
   tags$link(rel='stylesheet',href='nist_style.css'),
@@ -62,7 +61,7 @@ server <- function(input, output, session) {
         appendTab(inputId='thePanel',
                   tabPanel('Download',
                            br(),
-                           h5(paste("Click the button to generate an html file of all tables and plots",
+                           h5(paste("Click the button to generate a pdf file of all tables and plots",
                                     "displayed throughout the application.")),
                            downloadAllUI('download')))
     })
@@ -72,13 +71,6 @@ server <- function(input, output, session) {
     plotResidsServer('resids',computedResults)
 
     downloadAllServer('download',computedResults,fits_info)
-    
-    if (!interactive()) {
-        session$onSessionEnded(function() {
-            stopApp()
-            q("no")
-        })
-    }
     
 }
 
